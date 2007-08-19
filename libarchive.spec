@@ -1,14 +1,15 @@
-%define	major 1
-%define libname	%mklibname archive %{major}
+%define	major 2
+%define libname %mklibname archive %{major}
+%define develname %mklibname archive -d
 
 Summary:	A library for reading and writing streaming archives
 Name:		libarchive
-Version:	1.2.53
+Version:	2.2.6
 Release:	%mkrel 1
 License:	BSD
 Group:		System/Libraries
 URL:		http://people.freebsd.org/~kientzle/libarchive/
-Source0:	http://people.freebsd.org/~kientzle/libarchive/src/%{name}-%{version}.tar.bz2
+Source0:	http://people.freebsd.org/~kientzle/libarchive/src/%{name}-%{version}.tar.gz
 BuildRequires:	autoconf2.5
 BuildRequires:	automake1.9
 BuildRequires:	bison
@@ -39,13 +40,16 @@ archives. The bsdtar program is an implementation of tar(1) that is built on
 top of libarchive. It started as a test harness, but has grown and is now the
 standard system tar for FreeBSD 5 and 6.
 
-%package -n	%{libname}-devel
+%package -n	%{develname}
 Summary:	Static library and header files for the libarchive library
 Group:		Development/C
-Provides:	%{name}-devel = %{version}
 Requires:	%{libname} = %{version}
+Provides:	%{libname}-devel = %{version}
+Obsoletes:	%{libname}-devel
+Obsoletes:	%{mklibname archive 1}-devel
+Provides:	%{name}-devel = %{version}
 
-%description -n	%{libname}-devel
+%description -n	%{develname}
 Libarchive is a programming library that can create and read several different
 streaming archive formats, including most popular tar variants and several cpio
 formats. It can also write shar archives and read ISO9660 CDROM images and ZIP
@@ -97,7 +101,7 @@ perl -pi -e "s|\-static||g" Makefile*
 %doc COPYING NEWS README
 %attr(0755,root,root) %{_libdir}/lib*.so.*
 
-%files -n %{libname}-devel
+%files -n %{develname}
 %defattr(-,root,root)
 %attr(0755,root,root) %{_libdir}/*so
 %attr(0644,root,root) %{_libdir}/*.a
@@ -105,4 +109,3 @@ perl -pi -e "s|\-static||g" Makefile*
 %attr(0644,root,root) %{_includedir}/*.h
 %attr(0644,root,root) %{_mandir}/man3/*
 %attr(0644,root,root) %{_mandir}/man5/*
-
