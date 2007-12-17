@@ -18,7 +18,6 @@ BuildRequires:	libacl-devel
 BuildRequires:	libattr-devel
 BuildRequires:	libtool
 BuildRequires:	zlib-devel
-BuildRoot:	%{_tmppath}/%{name}-%{version}-root
 
 %description
 Libarchive is a programming library that can create and read several different
