@@ -4,7 +4,7 @@
 
 Summary:	A library for reading and writing streaming archives
 Name:		libarchive
-Version:	2.4.10
+Version:	2.4.11
 Release:	%mkrel 1
 License:	BSD
 Group:		System/Libraries
