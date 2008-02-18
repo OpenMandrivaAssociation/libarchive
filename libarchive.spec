@@ -2,7 +2,7 @@
 %define libname %mklibname archive %{major}
 %define develname %mklibname archive -d
 
-Summary:	A library for reading and writing streaming archives
+Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	2.4.11
 Release:	%mkrel 1
@@ -29,7 +29,7 @@ top of libarchive. It started as a test harness, but has grown and is now the
 standard system tar for FreeBSD 5 and 6.
 
 %package -n	%{libname}
-Summary:	A library for reading and writing streaming archives
+Summary:	Library for reading and writing streaming archives
 Group:          System/Libraries
 
 %description -n	%{libname}
@@ -60,7 +60,7 @@ standard system tar for FreeBSD 5 and 6.
 This package contains header files for the libarchive library.
 
 %package -n	bsdtar
-Summary:	The bsdtar program is a full-featured tar replacement built on libarchive
+Summary:	Full-featured tar replacement built on libarchive
 Group:		Archiving/Backup
 
 %description -n	bsdtar
