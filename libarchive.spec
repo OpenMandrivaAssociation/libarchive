@@ -16,6 +16,7 @@ BuildRequires:	bison
 BuildRequires:	bzip2-devel
 BuildRequires:	libacl-devel
 BuildRequires:	libattr-devel
+BuildRequires:	e2fsprogs-devel
 BuildRequires:	libtool
 BuildRequires:	zlib-devel
 BuildRequires:	sharutils
