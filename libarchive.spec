@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	2.5.5
-Release:	%mkrel 1
+Release:	%mkrel 2
 License:	BSD
 Group:		System/Libraries
 URL:		http://people.freebsd.org/~kientzle/libarchive/
@@ -20,7 +20,7 @@ BuildRequires:	e2fsprogs-devel
 BuildRequires:	libtool
 BuildRequires:	zlib-devel
 BuildRequires:	sharutils
-BuildRoot:	%{_tmppath}/%{name}-%{version}-root
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 Libarchive is a programming library that can create and read several different
