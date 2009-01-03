@@ -4,8 +4,8 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	2.5.5
-Release:	%mkrel 2
+Version:	2.6.0
+Release:	%mkrel 1
 License:	BSD
 Group:		System/Libraries
 URL:		http://people.freebsd.org/~kientzle/libarchive/
@@ -19,6 +19,7 @@ BuildRequires:	libattr-devel
 BuildRequires:	e2fsprogs-devel
 BuildRequires:	libtool
 BuildRequires:	zlib-devel
+BuildRequires:	liblzmadec-devel
 BuildRequires:	sharutils
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
