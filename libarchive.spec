@@ -73,11 +73,8 @@ The bsdtar program is a full-featured tar replacement built on libarchive.
 
 %setup -q -n %{name}-%{version}
 
-# shared hack for bsdtar
-perl -pi -e "s|\-static||g" Makefile*
-
 %build
-%configure2_5x
+%configure2_5x	--enable-bsdtar=shared
 %make
 
 %install
