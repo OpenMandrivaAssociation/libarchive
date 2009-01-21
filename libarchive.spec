@@ -5,11 +5,12 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	2.6.0
-Release:	%mkrel 1
+Release:	%mkrel 2
 License:	BSD
 Group:		System/Libraries
 URL:		http://people.freebsd.org/~kientzle/libarchive/
 Source0:	http://people.freebsd.org/~kientzle/libarchive/src/%{name}-%{version}.tar.gz
+Patch0:		libarchive-2.6.0-xz-support.patch
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bison
@@ -19,7 +20,7 @@ BuildRequires:	libattr-devel
 BuildRequires:	e2fsprogs-devel
 BuildRequires:	libtool
 BuildRequires:	zlib-devel
-BuildRequires:	liblzmadec-devel
+BuildRequires:	lzma-devel
 BuildRequires:	sharutils
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
@@ -70,8 +71,8 @@ Group:		Archiving/Backup
 The bsdtar program is a full-featured tar replacement built on libarchive.
 
 %prep
-
-%setup -q -n %{name}-%{version}
+%setup -q
+%patch0 -p1 -b .xz~
 
 %build
 %configure2_5x	--enable-bsdtar=shared
