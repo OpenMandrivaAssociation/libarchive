@@ -78,7 +78,7 @@ The bsdtar program is a full-featured tar replacement built on libarchive.
 %make
 
 %install
-[ "%{buildroot}" != "/" ] && rm -rf %{buildroot}
+rm -rf %{buildroot}
 
 %makeinstall_std
 
@@ -91,7 +91,7 @@ The bsdtar program is a full-featured tar replacement built on libarchive.
 %endif
 
 %clean
-[ "%{buildroot}" != "/" ] && rm -rf %{buildroot}
+rm -rf %{buildroot}
 
 %files -n bsdtar
 %defattr(-,root,root)
