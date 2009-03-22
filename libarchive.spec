@@ -4,7 +4,7 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	2.6.1
+Version:	2.6.2
 Release:	%mkrel 1
 License:	BSD
 Group:		System/Libraries
@@ -77,7 +77,7 @@ The bsdtar program is a full-featured tar replacement built on libarchive.
 %patch1 -p1 -b .headers
 
 %build
-autoreconf -fis
+autoreconf -fi
 %configure2_5x \
     --enable-bsdtar=shared
 %make
