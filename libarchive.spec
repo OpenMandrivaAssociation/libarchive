@@ -4,14 +4,14 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	2.6.2
+Version:	2.7.0
 Release:	%mkrel 1
 License:	BSD
 Group:		System/Libraries
 URL:		http://code.google.com/p/libarchive/
 Source0:	http://libarchive.googlecode.com/files/%{name}-%{version}.tar.gz
-Patch0:		libarchive-2.6.0-xz-support.patch
-Patch1:		libarchive-2.6.1-headers.patch
+Patch0:		libarchive-2.6.1-headers.patch
+Patch1:		libarchive-2.7.0-no-Werror.diff
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bison
@@ -71,15 +71,28 @@ Group:		Archiving/Backup
 %description -n	bsdtar
 The bsdtar program is a full-featured tar replacement built on libarchive.
 
+%package -n	bsdcpio
+Summary:	Copy files to and from archives
+Group:		Archiving/Backup
+
+%description -n	bsdcpio
+bsdcpio copies files between archives and directories. This implementation can
+extract from tar, pax, cpio, zip, jar, ar, and ISO 9660 cdrom images and can
+create tar, pax, cpio, ar, and shar archives.
+
 %prep
+
 %setup -q
-%patch0 -p1 -b .xz~
-%patch1 -p1 -b .headers
+%patch0 -p0 -b .headers
+%patch1 -p0 -b .no-Werror
 
 %build
-autoreconf -fi
+autoreconf -fis
+
 %configure2_5x \
-    --enable-bsdtar=shared
+    --enable-bsdtar=shared \
+    --enable-bsdcpio=shared
+
 %make
 
 %install
@@ -101,7 +114,12 @@ rm -rf %{buildroot}
 %files -n bsdtar
 %defattr(-,root,root)
 %attr(0755,root,root) %{_bindir}/bsdtar
-%attr(0644,root,root) %{_mandir}/man1/*
+%attr(0644,root,root) %{_mandir}/man1/bsdtar.1*
+
+%files -n bsdcpio
+%defattr(-,root,root)
+%attr(0755,root,root) %{_bindir}/bsdcpio
+%attr(0644,root,root) %{_mandir}/man1/bsdcpio.1*
 
 %files -n %{libname}
 %defattr(-,root,root)
