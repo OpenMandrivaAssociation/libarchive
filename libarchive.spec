@@ -4,14 +4,13 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	2.7.1
+Version:	2.8.0
 Release:	%mkrel 1
 License:	BSD
 Group:		System/Libraries
 URL:		http://code.google.com/p/libarchive/
 Source0:	http://libarchive.googlecode.com/files/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
-Patch1:		libarchive-2.7.0-no-Werror.diff
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	bison
@@ -84,7 +83,6 @@ create tar, pax, cpio, ar, and shar archives.
 
 %setup -q
 %patch0 -p0 -b .headers
-%patch1 -p0 -b .no-Werror
 
 %build
 autoreconf -fis
@@ -129,8 +127,8 @@ rm -rf %{buildroot}
 %files -n %{develname}
 %defattr(-,root,root)
 %attr(0755,root,root) %{_libdir}/*so
-%attr(0644,root,root) %{_libdir}/*.a
-%attr(0644,root,root) %{_libdir}/*.la
+%attr(0644,root,root) %{_libdir}/*.*a
+%attr(0644,root,root) %{_libdir}/pkgconfig/libarchive.pc
 %attr(0644,root,root) %{_includedir}/*.h
 %attr(0644,root,root) %{_mandir}/man3/*
 %attr(0644,root,root) %{_mandir}/man5/*
