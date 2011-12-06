@@ -20,7 +20,7 @@ BuildRequires:	libattr-devel
 BuildRequires:	e2fsprogs-devel
 BuildRequires:	libtool
 BuildRequires:	zlib-devel
-BuildRequires:	lzma-devel
+BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	sharutils
 
 %description
