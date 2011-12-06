@@ -96,6 +96,7 @@ autoreconf -fis
 %install
 rm -rf %{buildroot}
 %makeinstall_std
+find %{buildroot}%{_libdir} -name '*.la' -type f -delete -print
 
 %files -n bsdtar
 %doc NEWS README
