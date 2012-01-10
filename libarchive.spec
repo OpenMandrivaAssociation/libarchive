@@ -1,11 +1,11 @@
-%define	major 2
+%define	major 1
 %define libname %mklibname archive %{major}
 %define develname %mklibname archive -d
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	2.8.5
-Release:	2
+Version:	3.0.2
+Release:	1
 License:	BSD
 Group:		System/Libraries
 URL:		http://code.google.com/p/libarchive/
@@ -17,7 +17,7 @@ BuildRequires:	bison
 BuildRequires:	bzip2-devel
 BuildRequires:	libacl-devel
 BuildRequires:	libattr-devel
-BuildRequires:	e2fsprogs-devel
+#BuildRequires:	e2fsprogs-devel
 BuildRequires:	libtool
 BuildRequires:	zlib-devel
 BuildRequires:	pkgconfig(liblzma)
@@ -94,7 +94,6 @@ autoreconf -fis
 %make
 
 %install
-rm -rf %{buildroot}
 %makeinstall_std
 find %{buildroot}%{_libdir} -name '*.la' -type f -delete -print
 
