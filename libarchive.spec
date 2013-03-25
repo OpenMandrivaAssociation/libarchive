@@ -1,11 +1,12 @@
-%define	major 13
+%define	major	13
 %define libname %mklibname archive %{major}
+%define	oldlib	%mklibname archive 1
 %define develname %mklibname archive -d
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.1.1
-Release:	2
+Release:	3
 License:	BSD
 Group:		System/Libraries
 URL:		http://code.google.com/p/libarchive/
@@ -34,6 +35,7 @@ standard system tar for FreeBSD 5 and 6.
 %package -n	%{libname}
 Summary:	Library for reading and writing streaming archives
 Group:		System/Libraries
+%rename		%{oldlib}
 
 %description -n	%{libname}
 Libarchive is a programming library that can create and read several different
