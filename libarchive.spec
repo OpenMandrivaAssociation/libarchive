@@ -81,10 +81,9 @@ create tar, pax, cpio, ar, and shar archives.
 %prep
 %setup -q
 %patch0 -p0 -b .headers~
-
-%build
 autoreconf -fis
 
+%build
 %configure2_5x	--disable-static \
 		--enable-bsdtar=shared \
 		--enable-bsdcpio=shared
