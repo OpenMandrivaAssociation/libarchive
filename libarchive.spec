@@ -1,7 +1,7 @@
 %define	major	13
-%define libname %mklibname archive %{major}
+%define	libname	%mklibname archive %{major}
 %define	oldlib	%mklibname archive 1
-%define develname %mklibname archive -d
+%define	devname	%mklibname archive -d
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
@@ -45,14 +45,14 @@ archives. The bsdtar program is an implementation of tar(1) that is built on
 top of libarchive. It started as a test harness, but has grown and is now the
 standard system tar for FreeBSD 5 and 6.
 
-%package -n	%{develname}
+%package -n	%{devname}
 Summary:	Development library and header files for the libarchive library
 Group:		Development/C
 Requires:	%{libname} = %{version}-%{release}
 Provides:	%{libname}-devel = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
 
-%description -n	%{develname}
+%description -n	%{devname}
 Libarchive is a programming library that can create and read several different
 streaming archive formats, including most popular tar variants and several cpio
 formats. It can also write shar archives and read ISO9660 CDROM images and ZIP
@@ -79,18 +79,15 @@ extract from tar, pax, cpio, zip, jar, ar, and ISO 9660 cdrom images and can
 create tar, pax, cpio, ar, and shar archives.
 
 %prep
-
 %setup -q
-%patch0 -p0 -b .headers
+%patch0 -p0 -b .headers~
 
 %build
 autoreconf -fis
 
-%configure2_5x \
-	--disable-static \
-    --enable-bsdtar=shared \
-    --enable-bsdcpio=shared
-
+%configure2_5x	--disable-static \
+		--enable-bsdtar=shared \
+		--enable-bsdcpio=shared
 %make
 
 %install
@@ -98,24 +95,22 @@ autoreconf -fis
 
 %files -n bsdtar
 %doc NEWS README
-%attr(0755,root,root) %{_bindir}/bsdtar
-%attr(0644,root,root) %{_mandir}/man1/bsdtar.1*
+%{_bindir}/bsdtar
+%{_mandir}/man1/bsdtar.1*
 
 %files -n bsdcpio
-%attr(0755,root,root) %{_bindir}/bsdcpio
-%attr(0644,root,root) %{_mandir}/man1/bsdcpio.1*
+%{_bindir}/bsdcpio
+%{_mandir}/man1/bsdcpio.1*
 
 %files -n %{libname}
-%attr(0755,root,root) %{_libdir}/lib*.so.%{major}*
+%{_libdir}/lib*.so.%{major}*
 
-%files -n %{develname}
-%attr(0755,root,root) %{_libdir}/*so
-%attr(0644,root,root) %{_libdir}/pkgconfig/libarchive.pc
-%attr(0644,root,root) %{_includedir}/*.h
-%attr(0644,root,root) %{_mandir}/man3/*
-%attr(0644,root,root) %{_mandir}/man5/*
-
-
+%files -n %{devname}
+%{_libdir}/*so
+%{_libdir}/pkgconfig/libarchive.pc
+%{_includedir}/*.h
+%{_mandir}/man3/*
+%{_mandir}/man5/*
 
 %changelog
 * Sat Jan 14 2012 Alexander Khrukin <akhrukin@mandriva.org> 3.0.3-1
