@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.1.1
-Release:	3
+Release:	4
 License:	BSD
 Group:		System/Libraries
 Url:		http://code.google.com/p/libarchive/
