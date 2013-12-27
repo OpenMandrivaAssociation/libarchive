@@ -1,4 +1,2 @@
-removed_sources:
-  libarchive-3.0.4.tar.gz: 81bf817aa512ad67af583c7a2dab79743e418899
 sources:
-  libarchive-3.1.1.tar.gz: 651a61ce4271e2c7f0532b2b45a6682c18175951
+  libarchive-3.1.2.tar.gz: 6a991777ecb0f890be931cec4aec856d1a195489
