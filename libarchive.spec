@@ -54,6 +54,7 @@ This package contains header files for the libarchive library.
 %package -n bsdtar
 Summary:	Full-featured tar replacement built on libarchive
 Group:		Archiving/Backup
+Suggests:	/usr/bin/rsh
 Conflicts:	tar =< 1.27.1-5
 
 %description -n	bsdtar
@@ -62,6 +63,7 @@ The bsdtar program is a full-featured tar replacement built on libarchive.
 %package -n bsdcpio
 Summary:	Copy files to and from archives
 Group:		Archiving/Backup
+Requires:	rmt
 Conflicts:	cpio =< 2.11-12
 
 %description -n	bsdcpio
@@ -109,4 +111,3 @@ ln -s /bin/bsdcpio %{buildroot}/bin/cpio
 %{_includedir}/*.h
 %{_mandir}/man3/*
 %{_mandir}/man5/*
-
