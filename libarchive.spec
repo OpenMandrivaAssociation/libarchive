@@ -1,17 +1,16 @@
-%define	major	13
-%define	libname	%mklibname archive %{major}
-%define	devname	%mklibname archive -d
+%define major 13
+%define libname %mklibname archive %{major}
+%define develname %mklibname archive -d
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.1.2
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		http://code.google.com/p/libarchive/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
-
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils
@@ -30,7 +29,7 @@ archives. The bsdtar program is an implementation of tar(1) that is built on
 top of libarchive. It started as a test harness, but has grown and is now the
 standard system tar for FreeBSD 5 and 6.
 
-%package -n	%{libname}
+%package -n %{libname}
 Summary:	Library for reading and writing streaming archives
 Group:		System/Libraries
 %rename		%{_lib}archive1
@@ -43,25 +42,27 @@ archives. The bsdtar program is an implementation of tar(1) that is built on
 top of libarchive. It started as a test harness, but has grown and is now the
 standard system tar for FreeBSD 5 and 6.
 
-%package -n	%{devname}
+%package -n %{develname}
 Summary:	Development library and header files for the libarchive library
 Group:		Development/C
 Requires:	%{libname} = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
 
-%description -n	%{devname}
+%description -n	%{develname}
 This package contains header files for the libarchive library.
 
-%package -n	bsdtar
+%package -n bsdtar
 Summary:	Full-featured tar replacement built on libarchive
 Group:		Archiving/Backup
+Conflicts:	tar =< 1.27.1-5
 
 %description -n	bsdtar
 The bsdtar program is a full-featured tar replacement built on libarchive.
 
-%package -n	bsdcpio
+%package -n bsdcpio
 Summary:	Copy files to and from archives
 Group:		Archiving/Backup
+Conflicts:	cpio =< 2.11-12
 
 %description -n	bsdcpio
 bsdcpio copies files between archives and directories. This implementation can
@@ -74,7 +75,8 @@ create tar, pax, cpio, ar, and shar archives.
 autoreconf -fis
 
 %build
-%configure2_5x \
+%configure \
+	--bindir=/bin \
 	--disable-static \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared
@@ -83,19 +85,25 @@ autoreconf -fis
 %install
 %makeinstall_std
 
+# provide links for binaries for GNU tar and cpio
+ln -ls /bin/bsdtar %{buildroot}/bin/tar
+ln -ls /bin/bsdcpio %{buildroot}/bin/cpio
+
 %files -n bsdtar
 %doc NEWS README
-%{_bindir}/bsdtar
+/bin/bsdtar
+/bin/tar
 %{_mandir}/man1/bsdtar.1*
 
 %files -n bsdcpio
-%{_bindir}/bsdcpio
+/bin/bsdcpio
+/bin/cpio
 %{_mandir}/man1/bsdcpio.1*
 
 %files -n %{libname}
 %{_libdir}/libarchive.so.%{major}*
 
-%files -n %{devname}
+%files -n %{develname}
 %{_libdir}/*so
 %{_libdir}/pkgconfig/libarchive.pc
 %{_includedir}/*.h
