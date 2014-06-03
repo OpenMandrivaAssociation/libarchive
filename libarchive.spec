@@ -86,8 +86,8 @@ autoreconf -fis
 %makeinstall_std
 
 # provide links for binaries for GNU tar and cpio
-ln -ls /bin/bsdtar %{buildroot}/bin/tar
-ln -ls /bin/bsdcpio %{buildroot}/bin/cpio
+ln -s /bin/bsdtar %{buildroot}/bin/tar
+ln -s /bin/bsdcpio %{buildroot}/bin/cpio
 
 %files -n bsdtar
 %doc NEWS README
