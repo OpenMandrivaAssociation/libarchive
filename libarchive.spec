@@ -89,7 +89,7 @@ autoreconf -fis
 %build
 %configure \
 	--bindir=/bin \
-    --libdir=/%{_lib} \
+	--libdir=/%{_lib} \
 	--disable-static \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared
@@ -105,19 +105,26 @@ mkdir -p %{buildroot}%{_libdir}/pkgconfig
 mv -f %{buildroot}/%{_lib}/libarchive.so %{buildroot}%{_libdir}/libarchive.so
 mv -f %{buildroot}/%{_lib}/pkgconfig/libarchive.pc %{buildroot}%{_libdir}/pkgconfig/libarchive.pc
 
-# provide links for binaries for GNU tar and cpio
-ln -s bsdtar %{buildroot}/bin/tar
-ln -s bsdcpio %{buildroot}/bin/cpio
+# Make bsdtar and bsdcpio the default tar and cpio implementations
+for i in tar cpio; do
+	mv %{buildroot}/bin/bsd${i} %{buildroot}/bin/${i}
+	mv %{buildroot}%{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
+	# For compatibility with stuff hardcoding it
+	ln -s ${i} %{buildroot}/bin/bsd${i}
+	ln -s ${i}.1 %{buildroot}%{_mandir}/man1/bsd${i}.1
+done
 
 %files -n tar
 %doc NEWS README
-/bin/bsdtar
 /bin/tar
+/bin/bsdtar
+%{_mandir}/man1/tar.1*
 %{_mandir}/man1/bsdtar.1*
 
 %files -n cpio
-/bin/bsdcpio
 /bin/cpio
+/bin/bsdcpio
+%{_mandir}/man1/cpio.1*
 %{_mandir}/man1/bsdcpio.1*
 
 %files -n %{libname}
