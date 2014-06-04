@@ -79,6 +79,7 @@ autoreconf -fis
 %build
 %configure \
 	--bindir=/bin \
+    --libdir=/%{_lib} \
 	--disable-static \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared
@@ -103,10 +104,10 @@ ln -s /bin/bsdcpio %{buildroot}/bin/cpio
 %{_mandir}/man1/bsdcpio.1*
 
 %files -n %{libname}
-%{_libdir}/libarchive.so.%{major}*
+/%{_lib}/libarchive.so.%{major}*
 
 %files -n %{develname}
-%{_libdir}/*so
+%{_libdir}/%{name}*.so
 %{_libdir}/pkgconfig/libarchive.pc
 %{_includedir}/*.h
 %{_mandir}/man3/*
