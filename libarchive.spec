@@ -83,10 +83,15 @@ autoreconf -fis
 	--disable-static \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared
+
 %make
 
 %install
 %makeinstall_std
+
+#(tpg) move to _libdir
+mv -f %{buildroot}/%{_lib}/libarchive.so %{buildroot}%{_libdir}/libarchive.so
+mv -f %{buildroot}/%{_lib}/pkgconfig/libarchive.pc %{buildroot}%{_libdir}/pkgconfig/libarchive.pc
 
 # provide links for binaries for GNU tar and cpio
 ln -s /bin/bsdtar %{buildroot}/bin/tar
