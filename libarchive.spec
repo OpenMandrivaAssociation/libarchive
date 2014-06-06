@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.1.2
-Release:	3
+Release:	4
 License:	BSD
 Group:		System/Libraries
 Url:		http://code.google.com/p/libarchive/
@@ -102,7 +102,7 @@ autoreconf -fis
 #(tpg) move to _libdir
 mkdir -p %{buildroot}%{_libdir}
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
-mv -f %{buildroot}/%{_lib}/libarchive.so %{buildroot}%{_libdir}/libarchive.so
+cp -f %{buildroot}/%{_lib}/libarchive.so %{buildroot}%{_libdir}/libarchive.so
 mv -f %{buildroot}/%{_lib}/pkgconfig/libarchive.pc %{buildroot}%{_libdir}/pkgconfig/libarchive.pc
 
 # Make bsdtar and bsdcpio the default tar and cpio implementations
@@ -131,6 +131,7 @@ done
 /%{_lib}/libarchive.so.%{major}*
 
 %files -n %{develname}
+/%{_lib}/libarchive.so
 %{_libdir}/%{name}*.so
 %{_libdir}/pkgconfig/libarchive.pc
 %{_includedir}/*.h
