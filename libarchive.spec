@@ -102,6 +102,7 @@ autoreconf -fis
 #(tpg) move to _libdir
 mkdir -p %{buildroot}%{_libdir}
 mkdir -p %{buildroot}%{_libdir}/pkgconfig
+mv -f %{buildroot}%{_libdir}libarchive.so.%{major} %{buildroot}/%{_lib}/libarchive.so.%{major}
 cp -f %{buildroot}/%{_lib}/libarchive.so %{buildroot}%{_libdir}/libarchive.so
 mv -f %{buildroot}/%{_lib}/pkgconfig/libarchive.pc %{buildroot}%{_libdir}/pkgconfig/libarchive.pc
 
