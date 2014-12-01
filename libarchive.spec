@@ -11,6 +11,7 @@ Group:		System/Libraries
 Url:		http://code.google.com/p/libarchive/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
+Patch1:		libarchive-3.1.2-CVE-2013-0211.patch
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils
