@@ -5,13 +5,14 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.1.2
-Release:	8
+Release:	9
 License:	BSD
 Group:		System/Libraries
 Url:		http://code.google.com/p/libarchive/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.1.2-CVE-2013-0211.patch
+Patch2:		libarchive-3.1.2-cpio-add-dereference-long-alias-for-gnu-cpio-compatibility.patch
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils

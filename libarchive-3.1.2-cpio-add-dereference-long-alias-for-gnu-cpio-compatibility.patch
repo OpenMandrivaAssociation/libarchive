@@ -1,0 +1,10 @@
+--- libarchive-3.1.2/cpio/cmdline.c~	2015-01-09 00:23:25.778854291 +0100
++++ libarchive-3.1.2/cpio/cmdline.c	2015-01-09 00:23:27.928848009 +0100
+@@ -70,6 +70,7 @@ static const struct option {
+ 	{ "grzip",			0, OPTION_GRZIP },
+ 	{ "help",			0, 'h' },
+ 	{ "insecure",			0, OPTION_INSECURE },
++	{ "dereference",		0, 'L' },
+ 	{ "link",			0, 'l' },
+ 	{ "list",			0, 't' },
+ 	{ "lrzip",			0, OPTION_LRZIP },
