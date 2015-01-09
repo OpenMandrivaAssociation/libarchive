@@ -22,9 +22,11 @@ BuildRequires:	acl-devel
 BuildRequires:	attr-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	lzo-devel
+# expat is lighter with less dependencies, so considering as this package is
+# now a part of basesystem, we'll use expat rather than libxml2
+BuildRequires:	pkgconfig(expat)
 BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(ext2fs)
-BuildRequires:	pkgconfig(libxml-2.0)
 BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(zlib)
 
@@ -101,7 +103,9 @@ autoreconf -fis
 	--disable-static \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared \
-	--enable-lzo2
+	--enable-lzo2 \
+	--with-expat \
+	--without-xml2
 
 # remove rpaths
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
