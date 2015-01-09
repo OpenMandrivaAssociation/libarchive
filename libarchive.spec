@@ -71,8 +71,7 @@ This package contains header files for the libarchive library.
 Summary:	Full-featured tar replacement built on libarchive
 Group:		Archiving/Backup
 Suggests:	/usr/bin/rsh
-Provides:	bsdtar = %{EVRD}
-Obsoletes:	bsdtar < %{EVRD}
+%rename		bsdtar
 
 %description -n	tar
 The bsdtar program is a full-featured tar replacement built on
@@ -82,8 +81,7 @@ libarchive.
 Summary:	Copy files to and from archives
 Group:		Archiving/Backup
 Suggests:	rmt
-Provides:	bsdcpio = %{EVRD}
-Obsoletes:	bsdcpio < %{EVRD}
+%rename		bsdcpio
 
 %description -n	cpio
 bsdcpio copies files between archives and directories. This
