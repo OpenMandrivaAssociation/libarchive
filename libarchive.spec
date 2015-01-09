@@ -104,7 +104,9 @@ autoreconf -fis
 	--enable-lzo2 \
 	--with-expat \
 	--without-xml2 \
-	--with-openssl
+	--with-openssl \
+	--with-xattr \
+	--with-acl
 
 # remove rpaths
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
