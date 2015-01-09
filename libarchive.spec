@@ -100,7 +100,8 @@ autoreconf -fis
 	--libdir=/%{_lib} \
 	--disable-static \
 	--enable-bsdtar=shared \
-	--enable-bsdcpio=shared
+	--enable-bsdcpio=shared \
+	--enable-lzo2
 
 # remove rpaths
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
