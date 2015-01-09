@@ -106,7 +106,10 @@ autoreconf -fis
 	--without-xml2 \
 	--with-openssl \
 	--with-xattr \
-	--with-acl
+	--with-acl \
+	--with-lzma \
+	--with-zlib \
+	--with-bz2lib
 
 # remove rpaths
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
