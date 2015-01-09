@@ -28,6 +28,7 @@ BuildRequires:	pkgconfig(expat)
 BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(ext2fs)
 BuildRequires:	pkgconfig(liblzma)
+BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(zlib)
 
 %description
@@ -105,7 +106,8 @@ autoreconf -fis
 	--enable-bsdcpio=shared \
 	--enable-lzo2 \
 	--with-expat \
-	--without-xml2
+	--without-xml2 \
+	--with-openssl
 
 # remove rpaths
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
