@@ -101,7 +101,6 @@ autoreconf -fis
 %configure \
 	--bindir=/bin \
 	--libdir=/%{_lib} \
-	--disable-static \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared \
 	--enable-lzo2 \
