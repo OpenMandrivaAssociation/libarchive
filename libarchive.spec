@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.1.2
-Release:	9
+Release:	10
 License:	BSD
 Group:		System/Libraries
 Url:		http://code.google.com/p/libarchive/
@@ -19,7 +19,10 @@ BuildRequires:	sharutils
 BuildRequires:	acl-devel
 BuildRequires:	attr-devel
 BuildRequires:	bzip2-devel
+BuildRequires:	lzo-devel
+BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(ext2fs)
+BuildRequires:	pkgconfig(libxml-2.0)
 BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(zlib)
 
@@ -95,6 +98,10 @@ autoreconf -fis
 	--disable-static \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared
+
+# remove rpaths
+sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
+sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 
 %make
 
