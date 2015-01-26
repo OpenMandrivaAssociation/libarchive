@@ -1,7 +1,7 @@
 diff -Naur libarchive-3.1.2/tar/read.c libarchive-3.1.2.tpg/tar/read.c
 --- libarchive-3.1.2/tar/read.c	2013-01-14 01:43:45.000000000 +0000
-+++ libarchive-3.1.2.tpg/tar/read.c	2015-01-26 21:13:06.381468746 +0000
-@@ -323,10 +323,21 @@
++++ libarchive-3.1.2.tpg/tar/read.c	2015-01-26 21:49:13.276725726 +0000
+@@ -323,10 +323,16 @@
  			 * deferred '\n'.
  			 */
  			if (bsdtar->verbose) {
@@ -10,26 +10,25 @@ diff -Naur libarchive-3.1.2/tar/read.c libarchive-3.1.2.tpg/tar/read.c
  				    archive_entry_pathname(entry));
  				fflush(stderr);
 -			}
-+			} else if (bsdtar->verbose == 2) {
-+			/* Print verbose (vv) messages to STDOUT */
-+					safe_fprintf(stderr, "%s",
-+					    archive_entry_pathname(entry));
-+				fflush(stderr);
 +			} else {
-+			/* Print more verbose (vvv) messages to STDOUT */
-+				list_item_verbose(bsdtar, stderr, entry);
-+                    		fflush(stderr);
++			/* Print more verbose (vv) messages to STDOUT */
++				list_item_verbose(bsdtar, stdout, entry);
++                    		fflush(stdout);
 +                    	    }
 +                	}
  
  			/* TODO siginfo_printinfo(bsdtar, 0); */
  
-@@ -344,7 +355,7 @@
+@@ -344,8 +350,11 @@
  					fprintf(stderr, "\n");
  				bsdtar->return_value = 1;
  			}
 -			if (bsdtar->verbose)
-+			if (bsdtar->verbose > 0)
++			if (bsdtar->verbose > 1) {
++				fprintf(stdout, "\n");
++			} else {
  				fprintf(stderr, "\n");
++			}
  			if (r == ARCHIVE_FATAL)
  				break;
+ 		}
