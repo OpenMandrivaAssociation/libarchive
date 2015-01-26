@@ -14,7 +14,7 @@ diff -Naur libarchive-3.1.2/tar/read.c libarchive-3.1.2.tpg/tar/read.c
 +			else
 +				safe_fprintf(stdout, "%s",
 +				    archive_entry_pathname(entry));
-+				fflush(stdout);
++			fflush(stdout);
  
  			/* TODO siginfo_printinfo(bsdtar, 0); */
  
