@@ -1,20 +1,14 @@
-diff -Naur libarchive-3.1.2/tar/read.c libarchive-3.1.2.tpg/tar/read.c
---- libarchive-3.1.2/tar/read.c	2013-01-14 01:43:45.000000000 +0000
-+++ libarchive-3.1.2.tpg/tar/read.c	2015-01-25 23:39:04.584529796 +0000
-@@ -322,11 +322,14 @@
+--- cc/libarchive-3.1.2/tar/read.c	2013-01-14 01:43:45.000000000 +0000
++++ libarchive-3.1.2/tar/read.c	2015-01-26 12:05:04.568767613 +0000
+@@ -322,7 +322,10 @@
  			 * Format here is from SUSv2, including the
  			 * deferred '\n'.
  			 */
 -			if (bsdtar->verbose) {
-+			if (bsdtar->verbose < 2)
++			if (bsdtar->verbose > 1) {
++				list_item_verbose(bsdtar, stderr, entry);
++				fflush(stderr);
++			} else if (bsdtar->verbose > 0) {
  				safe_fprintf(stderr, "x %s",
  				    archive_entry_pathname(entry));
  				fflush(stderr);
--			}
-+			else
-+				safe_fprintf(stdout, "%s",
-+				    archive_entry_pathname(entry));
-+			fflush(stdout);
- 
- 			/* TODO siginfo_printinfo(bsdtar, 0); */
- 
