@@ -1,6 +1,6 @@
 diff -Naur libarchive-3.1.2/tar/read.c libarchive-3.1.2.tpg/tar/read.c
 --- libarchive-3.1.2/tar/read.c	2013-01-14 01:43:45.000000000 +0000
-+++ libarchive-3.1.2.tpg/tar/read.c	2015-01-26 21:49:13.276725726 +0000
++++ libarchive-3.1.2.tpg/tar/read.c	2015-01-28 20:24:59.581875861 +0000
 @@ -323,10 +323,16 @@
  			 * deferred '\n'.
  			 */
@@ -19,15 +19,18 @@ diff -Naur libarchive-3.1.2/tar/read.c libarchive-3.1.2.tpg/tar/read.c
  
  			/* TODO siginfo_printinfo(bsdtar, 0); */
  
-@@ -344,8 +350,11 @@
+@@ -344,8 +350,13 @@
  					fprintf(stderr, "\n");
  				bsdtar->return_value = 1;
  			}
 -			if (bsdtar->verbose)
-+			if (bsdtar->verbose > 1) {
-+				fprintf(stdout, "\n");
-+			} else {
- 				fprintf(stderr, "\n");
+-				fprintf(stderr, "\n");
++			if (bsdtar->verbose) {
++			    if (bsdtar->verbose > 1) {
++				    fprintf(stdout, "\n");
++			    } else {
++				    fprintf(stderr, "\n");
++			    }
 +			}
  			if (r == ARCHIVE_FATAL)
  				break;
