@@ -1,6 +1,6 @@
-%define major 13
-%define libname %mklibname archive %{major}
-%define develname %mklibname archive -d
+%define	major	13
+%define	libname	%mklibname archive %{major}
+%define	devname	%mklibname archive -d
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
@@ -59,13 +59,13 @@ The bsdtar program is an implementation of tar(1) that is built on
 top of libarchive. It started as a test harness, but has grown and is
 now the standard system tar for OpenMandriva Lx and FreeBSD.
 
-%package -n %{develname}
+%package -n %{devname}
 Summary:	Development library and header files for the libarchive library
 Group:		Development/C
 Requires:	%{libname} = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
 
-%description -n	%{develname}
+%description -n	%{devname}
 This package contains header files for the libarchive library.
 
 %package -n tar
@@ -154,7 +154,7 @@ done
 %files -n %{libname}
 /%{_lib}/libarchive.so.%{major}*
 
-%files -n %{develname}
+%files -n %{devname}
 %{_libdir}/%{name}*.so
 %{_libdir}/pkgconfig/libarchive.pc
 %{_includedir}/*.h
