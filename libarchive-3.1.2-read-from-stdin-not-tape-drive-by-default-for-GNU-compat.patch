@@ -1,0 +1,16 @@
+--- libarchive-3.1.2/tar/bsdtar.c.stdin~	2015-02-18 00:03:23.904687240 +0100
++++ libarchive-3.1.2/tar/bsdtar.c	2015-02-18 00:05:34.680514081 +0100
+@@ -208,8 +208,12 @@ main(int argc, char **argv)
+ 
+ 	/* Default: open tape drive. */
+ 	bsdtar->filename = getenv("TAPE");
++	/* unless something as arcane as tape drive is defined through the
++	 * $TAPE env variable, we read from stdin in stead, for compatible
++	 * behaviour with GNU tar
++	 */
+ 	if (bsdtar->filename == NULL)
+-		bsdtar->filename = _PATH_DEFTAPE;
++		bsdtar->filename = "/dev/stdin";
+ 
+ 	/* Default block size settings. */
+ 	bsdtar->bytes_per_block = DEFAULT_BYTES_PER_BLOCK;

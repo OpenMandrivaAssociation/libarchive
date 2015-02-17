@@ -15,6 +15,7 @@ Patch1:		libarchive-3.1.2-CVE-2013-0211.patch
 Patch2:		libarchive-3.1.2-cpio-add-dereference-long-alias-for-gnu-cpio-compatibility.patch
 Patch3:		libarchive-3.1.2-when-adding-vv-be-verbose-like-gnutar.patch
 Patch4:		libarchive-3.1.2-testsuite.patch
+Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-compat.patch
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils
