@@ -99,7 +99,6 @@ autoreconf -fis
 %build
 %configure \
 	--bindir=/bin \
-	--libdir=/%{_lib} \
 	--enable-bsdtar=shared \
 	--enable-bsdcpio=shared \
 	--enable-lzo2 \
@@ -121,10 +120,11 @@ sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 %install
 %makeinstall_std
 
-#(tpg) move to _libdir
-mkdir -p %{buildroot}%{_libdir}
-mkdir -p %{buildroot}%{_libdir}/pkgconfig
-mv -f %{buildroot}/%{_lib}/pkgconfig/libarchive.pc %{buildroot}%{_libdir}/pkgconfig/libarchive.pc
+#(proyvind) move to /%{_lib}
+install -d %{buildroot}/%{_lib}
+rm %{buildroot}%{_libdir}/libarchive.so
+mv %{buildroot}%{_libdir}/libarchive.so.%{major}* %{buildroot}/%{_lib}
+ln -sr %{buildroot}/%{_lib}/libarchive.so.%{major}.* %{buildroot}%{_libdir}/libarchive.so
 
 # Make bsdtar and bsdcpio the default tar and cpio implementations
 for i in tar cpio; do
@@ -155,7 +155,7 @@ done
 /%{_lib}/libarchive.so.%{major}*
 
 %files -n %{develname}
-/%{_lib}/%{name}*.so
+%{_libdir}/%{name}*.so
 %{_libdir}/pkgconfig/libarchive.pc
 %{_includedir}/*.h
 %{_mandir}/man3/*
