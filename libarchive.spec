@@ -134,6 +134,9 @@ for i in tar cpio; do
 	ln -s ${i}.1 %{buildroot}%{_mandir}/man1/bsd${i}.1
 done
 
+%check
+%make check
+
 %files -n tar
 %doc NEWS README
 /bin/tar
