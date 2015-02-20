@@ -17,6 +17,7 @@ Patch3:		libarchive-3.1.2-when-adding-vv-be-verbose-like-gnutar.patch
 Patch4:		libarchive-3.1.2-testsuite.patch
 Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-compat.patch
 Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
+Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils
