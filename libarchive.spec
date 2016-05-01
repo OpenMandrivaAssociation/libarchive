@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.1.2
-Release:	17
+Release:	18
 License:	BSD
 Group:		System/Libraries
 Url:		http://code.google.com/p/libarchive/
@@ -18,6 +18,14 @@ Patch4:		libarchive-3.1.2-testsuite.patch
 Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-compat.patch
 Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
 Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
+# fix not working saving/restoring acl
+# ~> downstream
+Patch8:		libarchive-3.1.2-acl.patch
+# ~> upstream patches: 3865cf2b e6c9668f 24f5de65
+Patch9:		libarchive-3.1.2-security-rhbz-1216891.patch
+# upstream: e65bf287
+Patch10:	libarchive-3.1.2-mtree-fix.patch
+
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils
