@@ -1,30 +1,20 @@
-%define	major	13
-%define	libname	%mklibname archive %{major}
-%define	devname	%mklibname archive -d
+%define major 13
+%define libname %mklibname archive %{major}
+%define devname %mklibname archive -d
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.1.2
-Release:	18
+Version:	3.2.0
+Release:	1
 License:	BSD
 Group:		System/Libraries
-Url:		http://code.google.com/p/libarchive/
+Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
-Patch1:		libarchive-3.1.2-CVE-2013-0211.patch
 Patch2:		libarchive-3.1.2-cpio-add-dereference-long-alias-for-gnu-cpio-compatibility.patch
-Patch3:		libarchive-3.1.2-when-adding-vv-be-verbose-like-gnutar.patch
-Patch4:		libarchive-3.1.2-testsuite.patch
 Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-compat.patch
 Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
 Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
-# fix not working saving/restoring acl
-# ~> downstream
-Patch8:		libarchive-3.1.2-acl.patch
-# ~> upstream patches: 3865cf2b e6c9668f 24f5de65
-Patch9:		libarchive-3.1.2-security-rhbz-1216891.patch
-# upstream: e65bf287
-Patch10:	libarchive-3.1.2-mtree-fix.patch
 
 BuildRequires:	bison
 BuildRequires:	libtool
@@ -41,6 +31,7 @@ BuildRequires:	pkgconfig(ext2fs)
 BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(zlib)
+BuildRequires:	pkgconfig(liblz4)
 
 %description
 Libarchive is a programming library that can create and read several
@@ -104,31 +95,19 @@ archives.
 %setup -q
 %apply_patches
 
-autoreconf -fis
+%cmake -DCMAKE_BUILD_TYPE=Release \
+    -DENABLE_LIBXML2=FALSE \
+    -DENABLE_NETTLE=OFF \
+    -DENABLE_CAT_SHARED=ON \
+    -DENABLE_CPIO_SHARED=ON \
+    -DENABLE_TAR_SHARED=ON
 
 %build
-%configure \
-	--bindir=/bin \
-	--enable-bsdtar=shared \
-	--enable-bsdcpio=shared \
-	--enable-lzo2 \
-	--with-expat \
-	--without-xml2 \
-	--with-openssl \
-	--with-xattr \
-	--with-acl \
-	--with-lzma \
-	--with-zlib \
-	--with-bz2lib
 
-# remove rpaths
-sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
-
-%make
+%make -C build
 
 %install
-%makeinstall_std
+%makeinstall_std -C build
 
 #(proyvind) move to /%{_lib}
 install -d %{buildroot}/%{_lib}
@@ -138,11 +117,11 @@ ln -sr %{buildroot}/%{_lib}/libarchive.so.%{major}.* %{buildroot}%{_libdir}/liba
 
 # Make bsdtar and bsdcpio the default tar and cpio implementations
 for i in tar cpio; do
-	mv %{buildroot}/bin/bsd${i} %{buildroot}/bin/${i}
-	mv %{buildroot}%{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
-	# For compatibility with stuff hardcoding it
-	ln -s ${i} %{buildroot}/bin/bsd${i}
-	ln -s ${i}.1 %{buildroot}%{_mandir}/man1/bsd${i}.1
+    mv %{buildroot}/bin/bsd${i} %{buildroot}/bin/${i}
+    mv %{buildroot}%{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
+# For compatibility with stuff hardcoding it
+    ln -s ${i} %{buildroot}/bin/bsd${i}
+    ln -s ${i}.1 %{buildroot}%{_mandir}/man1/bsd${i}.1
 done
 
 %check
