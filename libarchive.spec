@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.2.0
-Release:	2
+Release:	3
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -102,7 +102,6 @@ Group:		Archiving/Backup
 A command-line program automatically detects and
 decompresses a variety of files 
 
-
 %prep
 %setup -q
 %apply_patches
@@ -132,7 +131,7 @@ rm %{buildroot}/%{_libdir}/libarchive.a
 
 #mv %{buildroot}%{_libdir}/libarchive.so.%{major}* %{buildroot}/%{_lib}
 echo "pay attention here"
-ln -sr %{buildroot}/%{_lib}/libarchive.so.%{major} %{buildroot}%{_libdir}/libarchive.so
+ln -sr /%{_lib}/libarchive.so.%{major} %{buildroot}%{_libdir}/libarchive.so
 
 # Make bsdtar and bsdcpio the default tar and cpio implementations
 for i in tar cpio; do
