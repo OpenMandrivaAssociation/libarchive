@@ -108,6 +108,8 @@ decompresses a variety of files
 %apply_patches
 
 %cmake -DCMAKE_BUILD_TYPE=Release \
+    -DBIN_INSTALL_DIR="/bin" \
+    -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
     -DENABLE_NETTLE=OFF \
     -DENABLE_CAT_SHARED=ON \

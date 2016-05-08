@@ -26,7 +26,7 @@ diff -Naur libarchive-3.2.0/cat/CMakeLists.txt libarchive-3.2.0.tpg/cat/CMakeLis
  
    # Installation rules
 -  INSTALL(TARGETS bsdcat RUNTIME DESTINATION bin)
-+  INSTALL(TARGETS bsdcat RUNTIME "${BIN_INSTALL_DIR}")
++  INSTALL(TARGETS bsdcat RUNTIME DESTINATION "${BIN_INSTALL_DIR}")
    INSTALL_MAN(${bsdcat_MANS})
  ENDIF(ENABLE_CAT)
  
@@ -38,7 +38,7 @@ diff -Naur libarchive-3.2.0/cpio/CMakeLists.txt libarchive-3.2.0.tpg/cpio/CMakeL
  
    # Installation rules
 -  INSTALL(TARGETS bsdcpio RUNTIME DESTINATION bin)
-+  INSTALL(TARGETS bsdcpio RUNTIME "${BIN_INSTALL_DIR}")
++  INSTALL(TARGETS bsdcpio RUNTIME DESTINATION "${BIN_INSTALL_DIR}")
    INSTALL_MAN(${bsdcpio_MANS})
  
  ENDIF(ENABLE_CPIO)
@@ -51,8 +51,8 @@ diff -Naur libarchive-3.2.0/libarchive/CMakeLists.txt libarchive-3.2.0.tpg/libar
            RUNTIME DESTINATION bin
 -          LIBRARY DESTINATION lib
 -          ARCHIVE DESTINATION lib)
-+          LIBRARY "${LIB_INSTALL_DIR}"
-+          ARCHIVE "${LIB_INSTALL_DIR}")
++          LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
++          ARCHIVE DESTINATION "${LIB_INSTALL_DIR}")
    INSTALL_MAN(${libarchive_MANS})
    INSTALL(FILES ${include_HEADERS} DESTINATION include)
  ENDIF()
@@ -64,7 +64,7 @@ diff -Naur libarchive-3.2.0/tar/CMakeLists.txt libarchive-3.2.0.tpg/tar/CMakeLis
  
    # Installation rules
 -  INSTALL(TARGETS bsdtar RUNTIME DESTINATION bin)
-+  INSTALL(TARGETS bsdtar RUNTIME "${BIN_INSTALL_DIR}")
++  INSTALL(TARGETS bsdtar RUNTIME DESTINATION "${BIN_INSTALL_DIR}")
    INSTALL_MAN(${bsdtar_MANS})
  ENDIF(ENABLE_TAR)
  
