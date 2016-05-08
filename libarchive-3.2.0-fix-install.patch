@@ -13,7 +13,7 @@ diff -Naur libarchive-3.2.0/CMakeLists.txt libarchive-3.2.0.tpg/CMakeLists.txt
 +IF(LIB_INSTALL_DIR)
 +ELSE()
 +SET(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib)
-+ENDIF(
++ENDIF()
 +
  #
  # Version - read from 'version' file.
