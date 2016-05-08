@@ -1,14 +1,70 @@
+diff -Naur libarchive-3.2.0/CMakeLists.txt libarchive-3.2.0.tpg/CMakeLists.txt
+--- libarchive-3.2.0/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
++++ libarchive-3.2.0.tpg/CMakeLists.txt	2016-05-08 03:38:47.422606919 +0000
+@@ -39,6 +39,16 @@
+ # detail in "cmake  --help-policy CMP0042"
+ SET(CMAKE_MACOSX_RPATH ON)
+ 
++IF(BIN_INSTALL_DIR)
++ELSE()
++SET(BIN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/bin)
++ENDIF()
++
++IF(LIB_INSTALL_DIR)
++ELSE()
++SET(LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib)
++ENDIF(
++
+ #
+ # Version - read from 'version' file.
+ #
+diff -Naur libarchive-3.2.0/cat/CMakeLists.txt libarchive-3.2.0.tpg/cat/CMakeLists.txt
+--- libarchive-3.2.0/cat/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
++++ libarchive-3.2.0.tpg/cat/CMakeLists.txt	2016-05-08 03:33:31.752083038 +0000
+@@ -30,7 +30,7 @@
+   ENDIF(ENABLE_CAT_SHARED)
+ 
+   # Installation rules
+-  INSTALL(TARGETS bsdcat RUNTIME DESTINATION bin)
++  INSTALL(TARGETS bsdcat RUNTIME "${BIN_INSTALL_DIR}")
+   INSTALL_MAN(${bsdcat_MANS})
+ ENDIF(ENABLE_CAT)
+ 
+diff -Naur libarchive-3.2.0/cpio/CMakeLists.txt libarchive-3.2.0.tpg/cpio/CMakeLists.txt
+--- libarchive-3.2.0/cpio/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
++++ libarchive-3.2.0.tpg/cpio/CMakeLists.txt	2016-05-08 03:34:11.279148063 +0000
+@@ -39,7 +39,7 @@
+   ENDIF(ENABLE_CPIO_SHARED)
+ 
+   # Installation rules
+-  INSTALL(TARGETS bsdcpio RUNTIME DESTINATION bin)
++  INSTALL(TARGETS bsdcpio RUNTIME "${BIN_INSTALL_DIR}")
+   INSTALL_MAN(${bsdcpio_MANS})
+ 
+ ENDIF(ENABLE_CPIO)
 diff -Naur libarchive-3.2.0/libarchive/CMakeLists.txt libarchive-3.2.0.tpg/libarchive/CMakeLists.txt
 --- libarchive-3.2.0/libarchive/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
-+++ libarchive-3.2.0.tpg/libarchive/CMakeLists.txt	2016-05-08 03:01:19.032006552 +0000
++++ libarchive-3.2.0.tpg/libarchive/CMakeLists.txt	2016-05-08 03:40:23.100195696 +0000
 @@ -209,8 +209,8 @@
    # How to install the libraries
    INSTALL(TARGETS archive archive_static
            RUNTIME DESTINATION bin
 -          LIBRARY DESTINATION lib
 -          ARCHIVE DESTINATION lib)
-+          LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
-+          ARCHIVE DESTINATION "${LIB_INSTALL_DIR}")
++          LIBRARY "${LIB_INSTALL_DIR}"
++          ARCHIVE "${LIB_INSTALL_DIR}")
    INSTALL_MAN(${libarchive_MANS})
    INSTALL(FILES ${include_HEADERS} DESTINATION include)
  ENDIF()
+diff -Naur libarchive-3.2.0/tar/CMakeLists.txt libarchive-3.2.0.tpg/tar/CMakeLists.txt
+--- libarchive-3.2.0/tar/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
++++ libarchive-3.2.0.tpg/tar/CMakeLists.txt	2016-05-08 03:36:28.810859749 +0000
+@@ -43,7 +43,7 @@
+   ENDIF(ENABLE_TAR_SHARED)
+ 
+   # Installation rules
+-  INSTALL(TARGETS bsdtar RUNTIME DESTINATION bin)
++  INSTALL(TARGETS bsdtar RUNTIME "${BIN_INSTALL_DIR}")
+   INSTALL_MAN(${bsdtar_MANS})
+ ENDIF(ENABLE_TAR)
+ 

@@ -1,4 +1,4 @@
-%define major 13
+%define major 15
 %define libname %mklibname archive %{major}
 %define devname %mklibname archive -d
 
@@ -94,6 +94,15 @@ implementation can extract from tar, pax, cpio, zip, jar, ar, and
 ISO 9660 cdrom images and can create tar, pax, cpio, ar, and shar
 archives.
 
+%package -n bsdcat
+Summary:	Expand files to standard output
+Group:		Archiving/Backup
+
+%description -n	bsdcat
+A command-line program automatically detects and
+decompresses a variety of files 
+
+
 %prep
 %setup -q
 %apply_patches
@@ -113,9 +122,9 @@ archives.
 %ninja_install -C build
 
 #(proyvind) move to /%{_lib}
-install -d %{buildroot}/%{_lib}
-rm %{buildroot}%{_libdir}/libarchive.so
-mv %{buildroot}%{_libdir}/libarchive.so.%{major}* %{buildroot}/%{_lib}
+install -d %{buildroot}/%{_libdir}
+#rm %{buildroot}%{_libdir}/libarchive.so
+#mv %{buildroot}%{_libdir}/libarchive.so.%{major}* %{buildroot}/%{_lib}
 ln -sr %{buildroot}/%{_lib}/libarchive.so.%{major}.* %{buildroot}%{_libdir}/libarchive.so
 
 # Make bsdtar and bsdcpio the default tar and cpio implementations
@@ -143,6 +152,10 @@ done
 /bin/bsdcpio
 %{_mandir}/man1/cpio.1*
 %{_mandir}/man1/bsdcpio.1*
+
+%files -n bsdcat
+/bin/bsdcat
+%{_mandir}/man1/bsdcat.1*
 
 %files -n %{libname}
 /%{_lib}/libarchive.so.%{major}*
