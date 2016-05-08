@@ -143,8 +143,7 @@ for i in tar cpio; do
 done
 
 %check
-# testing not working into docker
-#% make check
+%ninja -C build test
 
 %files -n tar
 %doc NEWS README
