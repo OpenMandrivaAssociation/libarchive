@@ -16,6 +16,8 @@ Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-comp
 Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
 Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
 
+BuildRequires:	cmake
+BuildRequires:	ninja
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils
@@ -103,11 +105,10 @@ archives.
     -DENABLE_TAR_SHARED=ON
 
 %build
-
-%make -C build
+%ninja -C build
 
 %install
-%makeinstall_std -C build
+%ninja_install -C build
 
 #(proyvind) move to /%{_lib}
 install -d %{buildroot}/%{_lib}
