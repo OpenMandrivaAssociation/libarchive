@@ -125,7 +125,11 @@ decompresses a variety of files
 
 #(proyvind) move to /%{_lib}
 install -d %{buildroot}/%{_libdir}
-#rm %{buildroot}%{_libdir}/libarchive.so
+
+# (tpg) not needed
+rm %{buildroot}/%{_lib}/libarchive.so
+rm %{buildroot}/%{_libdir}/libarchive.a
+
 #mv %{buildroot}%{_libdir}/libarchive.so.%{major}* %{buildroot}/%{_lib}
 ln -sr %{buildroot}/%{_lib}/libarchive.so.%{major}.* %{buildroot}%{_libdir}/libarchive.so
 

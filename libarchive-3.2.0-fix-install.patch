@@ -35,7 +35,7 @@ diff -Naur libarchive-3.2.0/build/cmake/CreatePkgConfigFile.cmake libarchive-3.2
  IF(ENABLE_INSTALL)
    INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/build/pkgconfig/libarchive.pc
 -          DESTINATION "lib/pkgconfig")
-+          DESTINATION "${LIB_INSTALL_DIR}/pkgconfig")
++          DESTINATION "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}/pkgconfig")
  ENDIF()
 diff -Naur libarchive-3.2.0/cat/CMakeLists.txt libarchive-3.2.0.tpg/cat/CMakeLists.txt
 --- libarchive-3.2.0/cat/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
