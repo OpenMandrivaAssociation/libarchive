@@ -1,0 +1,14 @@
+diff -Naur libarchive-3.2.0/libarchive/CMakeLists.txt libarchive-3.2.0.tpg/libarchive/CMakeLists.txt
+--- libarchive-3.2.0/libarchive/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
++++ libarchive-3.2.0.tpg/libarchive/CMakeLists.txt	2016-05-08 03:01:19.032006552 +0000
+@@ -209,8 +209,8 @@
+   # How to install the libraries
+   INSTALL(TARGETS archive archive_static
+           RUNTIME DESTINATION bin
+-          LIBRARY DESTINATION lib
+-          ARCHIVE DESTINATION lib)
++          LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
++          ARCHIVE DESTINATION "${LIB_INSTALL_DIR}")
+   INSTALL_MAN(${libarchive_MANS})
+   INSTALL(FILES ${include_HEADERS} DESTINATION include)
+ ENDIF()

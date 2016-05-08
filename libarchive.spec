@@ -11,6 +11,7 @@ Group:		System/Libraries
 Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
+Patch1:		libarchive-3.2.0-fix-install.patch
 Patch2:		libarchive-3.1.2-cpio-add-dereference-long-alias-for-gnu-cpio-compatibility.patch
 Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-compat.patch
 Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
