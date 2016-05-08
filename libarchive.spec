@@ -102,7 +102,8 @@ archives.
     -DENABLE_NETTLE=OFF \
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
-    -DENABLE_TAR_SHARED=ON
+    -DENABLE_TAR_SHARED=ON \
+    -G Ninja
 
 %build
 %ninja -C build
