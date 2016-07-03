@@ -1,0 +1,24 @@
+diff -Naur libarchive-3.2.1/CMakeLists.txt libarchive-3.2.1.tpg/CMakeLists.txt
+--- libarchive-3.2.1/CMakeLists.txt	2016-07-03 10:56:21.000000000 +0000
++++ libarchive-3.2.1.tpg/CMakeLists.txt	2016-07-03 11:00:00.368044297 +0000
+@@ -482,6 +482,9 @@
+   IF(NOT WITHOUT_LZMA_API_STATIC AND LZMA_API_STATIC)
+     ADD_DEFINITIONS(-DLZMA_API_STATIC)
+   ENDIF(NOT WITHOUT_LZMA_API_STATIC AND LZMA_API_STATIC)
++    CHECK_C_SOURCE_COMPILES(
++    "#include <lzma.h>\n#if LZMA_VERSION < 50020000\n#error unsupported\n#endif\nint main(void){lzma_stream_encoder_mt(0, 0); return 0;}"
++    HAVE_LZMA_STREAM_ENCODER_MT)
+ ELSEIF(LZMADEC_FOUND)
+   SET(HAVE_LIBLZMADEC 1)
+   SET(HAVE_LZMADEC_H 1)
+@@ -1309,10 +1312,6 @@
+   "#include <sys/sysmacros.h>\nint main() { return major(256); }"
+   MAJOR_IN_SYSMACROS)
+ 
+-CHECK_C_SOURCE_COMPILES(
+-  "#include <lzma.h>\n#if LZMA_VERSION < 50020000\n#error unsupported\n#endif\nint main(void){lzma_stream_encoder_mt(0, 0); return 0;}"
+-  HAVE_LZMA_STREAM_ENCODER_MT)
+-
+ IF(HAVE_STRERROR_R)
+   SET(HAVE_DECL_STRERROR_R 1)
+ ENDIF(HAVE_STRERROR_R)

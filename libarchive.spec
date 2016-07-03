@@ -20,6 +20,7 @@ Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
 Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
 # (tpg) from upstream git
 Patch50:	0000-Merge-LZMA-MP-detection-from-configure.patch
+Patch51:	libarchive-3.2.1-HAVE_LZMA_STREAM_ENCODER_MT_v2.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -117,7 +118,6 @@ decompresses a variety of files
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
-    -DHAVE_LZMA_STREAM_ENCODER_MT=1 \
     -G Ninja
 
 %build
