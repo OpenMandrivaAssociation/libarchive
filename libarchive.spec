@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.2.1
-Release:	2
+Release:	3
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -117,6 +117,7 @@ decompresses a variety of files
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
+    -DHAVE_LZMA_STREAM_ENCODER_MT=1 \
     -G Ninja
 
 %build
