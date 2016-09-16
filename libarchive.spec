@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.2.1
-Release:	3
+Release:	4
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -18,6 +18,7 @@ Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-comp
 # (tpg) merged in upstream git
 Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
 Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
+Patch10:	libarchive-3.2.1-openssl-1.1.patch
 # (tpg) from upstream git
 Patch50:	0000-Merge-LZMA-MP-detection-from-configure.patch
 Patch51:	libarchive-3.2.1-HAVE_LZMA_STREAM_ENCODER_MT_v2.patch
