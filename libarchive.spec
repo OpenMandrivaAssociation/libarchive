@@ -4,22 +4,15 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.2.1
-Release:	3
+Version:	3.2.2
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
-# (tpg) merged in upstream git
-Patch2:		libarchive-3.1.2-cpio-add-dereference-long-alias-for-gnu-cpio-compatibility.patch
-Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-compat.patch
-# (tpg) merged in upstream git
-Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
-Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
-# (tpg) from upstream git
-Patch50:	0000-Merge-LZMA-MP-detection-from-configure.patch
+Patch10:	libarchive-3.2.1-openssl-1.1.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -147,13 +140,15 @@ for i in tar cpio; do
 done
 
 # (tpg) checks for i586 and x86_64 fails for some very strange reasons
+# here is a good explanation and possible workaround... but no time for this
+# https://github.com/libarchive/libarchive/issues/723
 %ifnarch %{ix86} x86_64
 %check
 ninja -C build test
 %endif
 
 %files -n tar
-%doc NEWS README
+%doc NEWS
 /bin/tar
 /bin/bsdtar
 %{_mandir}/man1/tar.1*
