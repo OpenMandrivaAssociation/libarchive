@@ -148,7 +148,7 @@ ninja -C build test
 %endif
 
 %files -n tar
-%doc NEWS README
+%doc NEWS
 /bin/tar
 /bin/bsdtar
 %{_mandir}/man1/tar.1*
