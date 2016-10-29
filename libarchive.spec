@@ -4,24 +4,15 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.2.1
-Release:	4
+Version:	3.2.2
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
-# (tpg) merged in upstream git
-Patch2:		libarchive-3.1.2-cpio-add-dereference-long-alias-for-gnu-cpio-compatibility.patch
-Patch5:		libarchive-3.1.2-read-from-stdin-not-tape-drive-by-default-for-GNU-compat.patch
-# (tpg) merged in upstream git
-Patch6:		libarchive-3.1.2-add-gnu-compatible-blocking-factor-alias.patch
-Patch7:		libarchive-3.1.2-fix-tar-uid_uname-test-to-work-with-different-uid.patch
 Patch10:	libarchive-3.2.1-openssl-1.1.patch
-# (tpg) from upstream git
-Patch50:	0000-Merge-LZMA-MP-detection-from-configure.patch
-Patch51:	libarchive-3.2.1-HAVE_LZMA_STREAM_ENCODER_MT_v2.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -119,6 +110,7 @@ decompresses a variety of files
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
+    -DHAVE_LZMA_STREAM_ENCODER_MT=1 \
     -G Ninja
 
 %build
