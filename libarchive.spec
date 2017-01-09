@@ -12,6 +12,7 @@ Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
+Patch2:		libarchive-3.2.2-fix-lzma.h-detect.patch
 %if %mdvver > 3000000
 Patch10:	libarchive-3.2.1-openssl-1.1.patch
 %endif
@@ -104,7 +105,7 @@ decompresses a variety of files
 %setup -q
 %apply_patches
 
-%cmake --debug-output -Wdev -DCMAKE_BUILD_TYPE=Release \
+%cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
@@ -113,9 +114,6 @@ decompresses a variety of files
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
     -G Ninja
-
-cat cmake.log
-exit 1
 
 %build
 %ninja -C build

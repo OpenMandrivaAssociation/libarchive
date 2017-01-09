@@ -1,0 +1,12 @@
+diff -Naur libarchive-3.2.2/CMakeLists.txt libarchive-3.2.2.tpg/CMakeLists.txt
+--- libarchive-3.2.2/CMakeLists.txt	2017-01-09 21:01:06.000000000 +0000
++++ libarchive-3.2.2.tpg/CMakeLists.txt	2017-01-09 21:04:08.578264474 +0000
+@@ -471,6 +471,8 @@
+ IF(LZMA_FOUND)
+   SET(HAVE_LIBLZMA 1)
+   SET(HAVE_LZMA_H 1)
++  SET(CMAKE_REQUIRED_INCLUDES ${LZMA_INCLUDE_DIR})
++  SET(CMAKE_REQUIRED_LIBRARIES ${LZMA_LIBRARIES})
+   INCLUDE_DIRECTORIES(${LZMA_INCLUDE_DIR})
+   LIST(APPEND ADDITIONAL_LIBS ${LZMA_LIBRARIES})
+   # Test if a macro is needed for the library.
