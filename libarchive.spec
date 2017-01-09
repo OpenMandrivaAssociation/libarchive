@@ -104,7 +104,7 @@ decompresses a variety of files
 %setup -q
 %apply_patches
 
-%cmake -DCMAKE_BUILD_TYPE=Release \
+%cmake --debug-output -Wdev -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
@@ -112,8 +112,10 @@ decompresses a variety of files
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
-    -DHAVE_LZMA_STREAM_ENCODER_MT=1 \
-    -G Ninja
+    -G Ninja >> output_file.txt 2>&1
+
+cat build/output_file.txt
+exit 1
 
 %build
 %ninja -C build
