@@ -112,9 +112,9 @@ decompresses a variety of files
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
-    -G Ninja >> output_file.txt 2>&1
+    -G Ninja
 
-cat output_file.txt
+cat cmake.log
 exit 1
 
 %build
