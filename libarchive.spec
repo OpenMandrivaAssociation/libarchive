@@ -114,7 +114,7 @@ decompresses a variety of files
     -DENABLE_TAR_SHARED=ON \
     -G Ninja >> output_file.txt 2>&1
 
-cat build/output_file.txt
+cat output_file.txt
 exit 1
 
 %build
