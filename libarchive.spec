@@ -102,7 +102,7 @@ decompresses a variety of files
 %prep
 %setup -q
 %apply_patches
-exit 1
+
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
