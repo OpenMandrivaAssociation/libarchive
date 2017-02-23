@@ -1,11 +1,11 @@
-%define major 15
+%define major 16
 %define libname %mklibname archive %{major}
 %define devname %mklibname archive -d
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.2.2
-Release:	2
+Version:	3.3.0
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -13,9 +13,6 @@ Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
 Patch2:		libarchive-3.2.2-fix-lzma.h-detect.patch
-%if %mdvver > 3000000
-Patch10:	libarchive-3.2.1-openssl-1.1.patch
-%endif
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -28,7 +25,8 @@ BuildRequires:	lzo-devel
 # expat is lighter with less dependencies, so considering as this package is
 # now a part of basesystem, we'll use expat rather than libxml2
 BuildRequires:	pkgconfig(expat)
-BuildRequires:	pkgconfig(openssl)
+# (tpg) use nettle as it is more lightweight and faster that openssl
+BuildRequires:	pkgconfig(nettle)
 BuildRequires:	pkgconfig(ext2fs)
 BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(openssl)
@@ -109,7 +107,9 @@ decompresses a variety of files
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
-    -DENABLE_NETTLE=OFF \
+    -DENABLE_NETTLE=ON \
+    -DENABLE_OPENSSL=ON \
+    -DENABLE_LZO=ON \
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
