@@ -12,7 +12,7 @@ Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
-Patch2:     libarchive-3.2.2-fix-lzma.h-detect.patch
+Patch2:		libarchive-3.2.2-fix-lzma.h-detect.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -25,7 +25,8 @@ BuildRequires:	lzo-devel
 # expat is lighter with less dependencies, so considering as this package is
 # now a part of basesystem, we'll use expat rather than libxml2
 BuildRequires:	pkgconfig(expat)
-BuildRequires:	pkgconfig(openssl)
+# (tpg) use nettle as it is more lightweight and faster that openssl
+BuildRequires:	pkgconfig(nettle)
 BuildRequires:	pkgconfig(ext2fs)
 BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(openssl)
@@ -101,12 +102,14 @@ decompresses a variety of files
 %prep
 %setup -q
 %apply_patches
-
+exit 1
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
-    -DENABLE_NETTLE=OFF \
+    -DENABLE_NETTLE=ON \
+    -DENABLE_OPENSSL=ON \
+    -DENABLE_LZO=ON \
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
