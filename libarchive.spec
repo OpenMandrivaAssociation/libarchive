@@ -12,9 +12,6 @@ Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
-%if %mdvver > 3000000
-Patch10:	libarchive-3.2.1-openssl-1.1.patch
-%endif
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
