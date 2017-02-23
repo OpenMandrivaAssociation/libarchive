@@ -1,4 +1,4 @@
-%define major 15
+%define major 16
 %define libname %mklibname archive %{major}
 %define devname %mklibname archive -d
 
@@ -12,6 +12,7 @@ Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
+Patch2:     libarchive-3.2.2-fix-lzma.h-detect.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
