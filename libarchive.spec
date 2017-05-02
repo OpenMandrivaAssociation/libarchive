@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.3.1
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -129,7 +129,7 @@ rm %{buildroot}/%{_libdir}/libarchive.a
 
 #mv %{buildroot}%{_libdir}/libarchive.so.%{major}* %{buildroot}/%{_lib}
 echo "pay attention here"
-ln -sr /%{_lib}/libarchive.so.%{major} %{buildroot}%{_libdir}/libarchive.so
+ln -sr %{buildroot}/%{_lib}/libarchive.so.%{major} %{buildroot}%{_libdir}/libarchive.so
 
 # Make bsdtar and bsdcpio the default tar and cpio implementations
 for i in tar cpio; do
