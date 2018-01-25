@@ -5,7 +5,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.3.2
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -21,14 +21,10 @@ BuildRequires:	acl-devel
 BuildRequires:	attr-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	lzo-devel
-# expat is lighter with less dependencies, so considering as this package is
-# now a part of basesystem, we'll use expat rather than libxml2
-BuildRequires:	pkgconfig(expat)
 # (tpg) use nettle as it is more lightweight and faster that openssl
 BuildRequires:	pkgconfig(nettle)
 BuildRequires:	pkgconfig(ext2fs)
 BuildRequires:	pkgconfig(liblzma)
-BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	pkgconfig(liblz4)
 
@@ -49,7 +45,7 @@ Summary:	Library for reading and writing streaming archives
 Group:		System/Libraries
 %rename		%{_lib}archive1
 
-%description -n	%{libname}
+%description -n %{libname}
 Libarchive is a programming library that can create and read several
 different streaming archive formats, including most popular tar
 variants and several cpio formats. It can also write shar archives and
@@ -74,7 +70,7 @@ Group:		Archiving/Backup
 Suggests:	/usr/bin/rsh
 %rename		bsdtar
 
-%description -n	tar
+%description -n tar
 The bsdtar program is a full-featured tar replacement built on
 libarchive.
 
@@ -84,7 +80,7 @@ Group:		Archiving/Backup
 Suggests:	rmt
 %rename		bsdcpio
 
-%description -n	cpio
+%description -n cpio
 bsdcpio copies files between archives and directories. This
 implementation can extract from tar, pax, cpio, zip, jar, ar, and
 ISO 9660 cdrom images and can create tar, pax, cpio, ar, and shar
@@ -106,8 +102,9 @@ decompresses a variety of files
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
+    -DENABLE_EXPAT=FALSE \
     -DENABLE_NETTLE=ON \
-    -DENABLE_OPENSSL=ON \
+    -DENABLE_OPENSSL=OFF \
     -DENABLE_LZO=ON \
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
