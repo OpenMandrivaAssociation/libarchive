@@ -1,0 +1,78 @@
+--- libarchive-3.3.2/tar/bsdtar.c.omv~	2018-03-07 01:32:21.729140258 +0100
++++ libarchive-3.3.2/tar/bsdtar.c	2018-03-07 01:36:18.546053507 +0100
+@@ -124,6 +124,38 @@ static void		 only_mode(struct bsdtar *,
+ static void		 set_mode(struct bsdtar *, char opt);
+ static void		 version(void) __LA_DEAD;
+ 
++static char const * const vcs_files[] = {
++	/* CVS */
++	"CVS",
++	".cvsignore",
++	/* RCS */
++	"RCS",
++	/* SVN */
++	".svn",
++	/* git */
++	".git",
++	".gitignore",
++	".gitattributes",
++	".gitmodules",
++	/* Arch */
++	".arch-ids",
++	"{arch}",
++	"=RELEASE-ID",
++	"=meta-update",
++	"=update",
++	/* Bazaar */
++	".bzr",
++	".bzrignore",
++	".bzrtags",
++	/* Mercurial */
++	".hg",
++	".hgignore",
++	".hgtags",
++	/* darcs */
++	"_darcs",
++	NULL
++};
++
+ /* A basic set of security flags to request from libarchive. */
+ #define	SECURITY					\
+ 	(ARCHIVE_EXTRACT_SECURE_SYMLINKS		\
+@@ -312,6 +344,16 @@ main(int argc, char **argv)
+ 				lafe_errc(1, 0,
+ 				    "Couldn't exclude %s\n", bsdtar->argument);
+ 			break;
++		case OPTION_EXCLUDE_VCS: /* GNU tar */
++			{
++				for(int i=0; vcs_files[i]; i++) {
++					if (archive_match_exclude_pattern(
++					    bsdtar->matching, vcs_files[i]) != ARCHIVE_OK)
++						lafe_errc(1, 0,
++						    "Couldn't exclude %s\n", vcs_files[i]);
++				}
++			}
++			break;
+ 		case OPTION_FFLAGS:
+ 			bsdtar->extract_flags |= ARCHIVE_EXTRACT_FFLAGS;
+ 			bsdtar->readdisk_flags &= ~ARCHIVE_READDISK_NO_FFLAGS;
+--- libarchive-3.3.2/tar/bsdtar.h.omv~	2018-03-07 01:32:13.134968949 +0100
++++ libarchive-3.3.2/tar/bsdtar.h	2018-03-07 01:32:18.313072097 +0100
+@@ -135,6 +135,7 @@ enum {
+ 	OPTION_CHROOT,
+ 	OPTION_CLEAR_NOCHANGE_FFLAGS,
+ 	OPTION_EXCLUDE,
++	OPTION_EXCLUDE_VCS,
+ 	OPTION_FFLAGS,
+ 	OPTION_FORMAT,
+ 	OPTION_GID,
+--- libarchive-3.3.2/tar/cmdline.c.omv~	2018-03-07 01:31:50.124513137 +0100
++++ libarchive-3.3.2/tar/cmdline.c	2018-03-07 01:32:08.008867043 +0100
+@@ -85,6 +85,7 @@ static const struct bsdtar_option {
+ 	{ "disable-copyfile",	  0, OPTION_NO_MAC_METADATA },
+ 	{ "exclude",              1, OPTION_EXCLUDE },
+ 	{ "exclude-from",         1, 'X' },
++	{ "exclude-vcs",          0, OPTION_EXCLUDE_VCS },
+ 	{ "extract",              0, 'x' },
+ 	{ "fast-read",            0, 'q' },
+ 	{ "fflags",               0, OPTION_FFLAGS },
