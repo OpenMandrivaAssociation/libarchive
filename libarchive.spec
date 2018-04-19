@@ -2,10 +2,12 @@
 %define libname %mklibname archive %{major}
 %define devname %mklibname archive -d
 
+%global optflags %{optflags} -Ofast
+
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.3.2
-Release:	3
+Release:	4
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
