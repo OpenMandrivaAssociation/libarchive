@@ -7,7 +7,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.3.2
-Release:	5
+Release:	6
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -15,6 +15,7 @@ Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
 Patch2:		libarchive-3.3.2-tar-exclude-vcs.patch
+Patch3:     git-update-for-zstd.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -24,6 +25,7 @@ BuildRequires:	acl-devel
 BuildRequires:	attr-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	lzo-devel
+BuildRequires:	pkgconfig(libzstd)
 # (tpg) use nettle as it is more lightweight and faster that openssl
 BuildRequires:	pkgconfig(nettle)
 BuildRequires:	pkgconfig(ext2fs)
