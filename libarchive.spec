@@ -15,7 +15,6 @@ Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
 Patch2:		libarchive-3.3.2-tar-exclude-vcs.patch
-Patch3:     git-update-for-zstd.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -100,8 +99,7 @@ A command-line program automatically detects and
 decompresses a variety of files 
 
 %prep
-%setup -q
-%apply_patches
+%autosetup -p1
 
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
