@@ -99,7 +99,8 @@ A command-line program automatically detects and
 decompresses a variety of files 
 
 %prep
-%autosetup -p1
+%setup -q 
+%apply_patches
 
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
