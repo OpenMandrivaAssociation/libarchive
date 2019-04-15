@@ -107,14 +107,18 @@ decompresses a variety of files
 %build
 
 %if %{with pgo}
-%global optflags_normal %{optflags}
-%global ldflags_normal %{ldflags}
-%global optflags %{optflags} -fprofile-instr-generate
-%global ldflags %{ldflags} -fprofile-instr-generate
-
 export LLVM_PROFILE_FILE=%{name}-%p.profile.d
 export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 %cmake -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_FLAGS="%{optflags} -fprofile-instr-generate" \
+    -DCMAKE_C_FLAGS_RELEASE="%{optflags} -fprofile-instr-generate" \
+    -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-generate" \
+    -DCMAKE_CXX_FLAGS="%{optflags} -fprofile-instr-generate" \
+    -DCMAKE_CXX_FLAGS_RELEASE="%{optflags} -fprofile-instr-generate" \
+    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-generate" \
+    -DCMAKE_EXE_LINKER_FLAGS="%{ldflags} -fprofile-instr-generate" \
+    -DCMAKE_SHARED_LINKER_FLAGS="%{ldflags} -fprofile-instr-generate" \
+    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{ldflags} -fprofile-instr-generate|sed -e 's#-Wl,--no-undefined##')"
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
@@ -135,11 +139,11 @@ unset LD_LIBRARY_PATH
 unset LLVM_PROFILE_FILE
 llvm-profdata merge --output=%{name}.profile $(find . -name "*.profile.d" -type f)
 find . -name "*.profile.d" -type f -delete
-ninja clean
+ninja -t clean
 cd ..
 
-%global optflags %{optlfags_normal} -fprofile-instr-use=$(realpath %{name}.profile)
-%global ldflags %{ldlfags_normal} -fprofile-instr-use=$(realpath %{name}.profile)
+%global optflags %{optflags} -fprofile-instr-use=$(realpath %{name}.profile)
+%global ldflags %{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)
 %endif
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
