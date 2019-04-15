@@ -106,13 +106,13 @@ decompresses a variety of files
 %build
 
 %if %{with pgo}
-CFLAGS_PGO="%{optflags} -fprofile-instr-generate"
-CXXFLAGS_PGO="%{optflags} -fprofile-instr-generate"
-FFLAGS_PGO="$CFLAGS_PGO"
-FCFLAGS_PGO="$CFLAGS_PGO"
-LDFLAGS_PGO="%{ldflags} -fprofile-instr-generate"
+%global optflags_normal %{optflags}
+%global ldflags_normal %{ldflags}
+%global optflags %{optflags} -fprofile-instr-generate
+%global ldflags %{ldflags} -fprofile-instr-generate
+
 export LLVM_PROFILE_FILE=%{name}-%p.profile.d
-export LD_LIBRARY_PATH="$(pwd)/build"
+export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
@@ -132,16 +132,26 @@ export LD_LIBRARY_PATH="$(pwd)/build"
 %ninja test
 unset LD_LIBRARY_PATH
 unset LLVM_PROFILE_FILE
-llvm-profdata merge --output=%{name}.profile *.profile.d
-#rm -f *.profile.d
-#ninja clean
-exit 1
-rm -rf lol
+llvm-profdata merge --output=%{name}.profile build/*/*/.profile.d
+rm -f build/*/*/.profile.d
+ninja clean
 
-CFLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-CXXFLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-LDFLAGS="%{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+%global optflags %{optlfags_normal} -fprofile-instr-use=$(realpath %{name}.profile)
+%global ldflags %{ldlfags_normal} -fprofile-instr-use=$(realpath %{name}.profile)
 %endif
+%cmake -DCMAKE_BUILD_TYPE=Release \
+    -DBIN_INSTALL_DIR="/bin" \
+    -DLIB_INSTALL_DIR="/%{_lib}" \
+    -DENABLE_LIBXML2=FALSE \
+    -DENABLE_EXPAT=FALSE \
+    -DENABLE_NETTLE=OFF \
+    -DENABLE_OPENSSL=ON \
+    -DENABLE_LZO=ON \
+    -DENABLE_CAT_SHARED=ON \
+    -DENABLE_CPIO_SHARED=ON \
+    -DENABLE_TAR_SHARED=ON \
+    -G Ninja
+
 %ninja
 
 %install
