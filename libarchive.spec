@@ -112,9 +112,7 @@ FFLAGS_PGO="$CFLAGS_PGO"
 FCFLAGS_PGO="$CFLAGS_PGO"
 LDFLAGS_PGO="%{ldflags} -fprofile-instr-generate"
 export LLVM_PROFILE_FILE=%{name}-%p.profile.d
-export LD_LIBRARY_PATH="$(pwd)/build/pgo"
-%define _vpath_builddir build/pgo
-mkdir build/pgo
+export LD_LIBRARY_PATH="$(pwd)/build"
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
@@ -128,25 +126,23 @@ mkdir build/pgo
     -DENABLE_TAR_SHARED=ON \
     -G Ninja
 
-%ninja -C build
+%ninja
 
 # run some tests
-
+%ninja test
 unset LD_LIBRARY_PATH
 unset LLVM_PROFILE_FILE
 llvm-profdata merge --output=%{name}.profile *.profile.d
-rm -f *.profile.d
-cd build/pgo
-ninja clean
-cd -
-rm -rf pgo
-%undefine _vpath_builddir
+#rm -f *.profile.d
+#ninja clean
+exit 1
+rm -rf lol
 
 CFLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
 CXXFLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
 LDFLAGS="%{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
 %endif
-%ninja -C build
+%ninja
 
 %install
 %ninja_install -C build
