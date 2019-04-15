@@ -21,6 +21,7 @@ Patch2:		libarchive-3.3.2-tar-exclude-vcs.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
+BuildRequires:	findutils
 BuildRequires:	libtool
 BuildRequires:	sharutils
 BuildRequires:	pkgconfig(libacl)
@@ -132,8 +133,8 @@ export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 %ninja test
 unset LD_LIBRARY_PATH
 unset LLVM_PROFILE_FILE
-llvm-profdata merge --output=%{name}.profile build/*/*/.profile.d
-rm -f build/*/*/.profile.d
+llvm-profdata merge --output=%{name}.profile $(find . -name "*.profile.d" -type f)
+find . -name "*.profile.d" -type f -delete
 ninja clean
 
 %global optflags %{optlfags_normal} -fprofile-instr-use=$(realpath %{name}.profile)
