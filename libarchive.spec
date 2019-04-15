@@ -4,6 +4,9 @@
 
 %global optflags %{optflags} -O3
 
+# (tpg) enable PGO build
+%bcond_without pgo
+
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.3.3
@@ -100,6 +103,18 @@ decompresses a variety of files
 %prep
 %autosetup -p1
 
+%build
+
+%if %{with pgo}
+CFLAGS_PGO="%{optflags} -fprofile-instr-generate"
+CXXFLAGS_PGO="%{optflags} -fprofile-instr-generate"
+FFLAGS_PGO="$CFLAGS_PGO"
+FCFLAGS_PGO="$CFLAGS_PGO"
+LDFLAGS_PGO="%{ldflags} -fprofile-instr-generate"
+export LLVM_PROFILE_FILE=%{name}-%p.profile.d
+export LD_LIBRARY_PATH="$(pwd)/build/pgo"
+%define _vpath_builddir build/pgo
+mkdir build/pgo
 %cmake -DCMAKE_BUILD_TYPE=Release \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
@@ -113,7 +128,24 @@ decompresses a variety of files
     -DENABLE_TAR_SHARED=ON \
     -G Ninja
 
-%build
+%ninja -C build
+
+# run some tests
+
+unset LD_LIBRARY_PATH
+unset LLVM_PROFILE_FILE
+llvm-profdata merge --output=%{name}.profile *.profile.d
+rm -f *.profile.d
+cd build/pgo
+ninja clean
+cd -
+rm -rf pgo
+%undefine _vpath_builddir
+
+CFLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+CXXFLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+LDFLAGS="%{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+%endif
 %ninja -C build
 
 %install
