@@ -136,6 +136,7 @@ unset LLVM_PROFILE_FILE
 llvm-profdata merge --output=%{name}.profile $(find . -name "*.profile.d" -type f)
 find . -name "*.profile.d" -type f -delete
 ninja clean
+cd ..
 
 %global optflags %{optlfags_normal} -fprofile-instr-use=$(realpath %{name}.profile)
 %global ldflags %{ldlfags_normal} -fprofile-instr-use=$(realpath %{name}.profile)
