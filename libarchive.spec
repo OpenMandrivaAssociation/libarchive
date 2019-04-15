@@ -7,7 +7,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.3.3
-Release:	3
+Release:	4
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -20,13 +20,12 @@ BuildRequires:	ninja
 BuildRequires:	bison
 BuildRequires:	libtool
 BuildRequires:	sharutils
-BuildRequires:	acl-devel
-BuildRequires:	attr-devel
-BuildRequires:	bzip2-devel
-BuildRequires:	lzo-devel
+BuildRequires:	pkgconfig(libacl)
+BuildRequires:	pkgconfig(libattr)
+BuildRequires:	pkgconfig(bzip2)
+BuildRequires:	pkgconfig(lzo2)
 BuildRequires:	pkgconfig(libzstd)
-# (tpg) use nettle as it is more lightweight and faster that openssl
-BuildRequires:	pkgconfig(nettle)
+BuildRequires:	pkgconfig(libssl)
 BuildRequires:	pkgconfig(ext2fs)
 BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(zlib)
@@ -65,7 +64,7 @@ Group:		Development/C
 Requires:	%{libname} = %{version}-%{release}
 Provides:	%{name}-devel = %{version}-%{release}
 
-%description -n	%{devname}
+%description -n %{devname}
 This package contains header files for the libarchive library.
 
 %package -n tar
@@ -94,7 +93,7 @@ archives.
 Summary:	Expand files to standard output
 Group:		Archiving/Backup
 
-%description -n	bsdcat
+%description -n bsdcat
 A command-line program automatically detects and
 decompresses a variety of files 
 
@@ -106,8 +105,8 @@ decompresses a variety of files
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
     -DENABLE_EXPAT=FALSE \
-    -DENABLE_NETTLE=ON \
-    -DENABLE_OPENSSL=OFF \
+    -DENABLE_NETTLE=OFF \
+    -DENABLE_OPENSSL=ON \
     -DENABLE_LZO=ON \
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
