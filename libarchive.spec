@@ -10,7 +10,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.3.3
-Release:	4
+Release:	5
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -141,11 +141,20 @@ llvm-profdata merge --output=%{name}.profile $(find . -name "*.profile.d" -type 
 find . -name "*.profile.d" -type f -delete
 ninja -t clean
 cd ..
-
-%global optflags %{optflags} -fprofile-instr-use=$(realpath %{name}.profile)
-%global ldflags %{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)
 %endif
+
 %cmake -DCMAKE_BUILD_TYPE=Release \
+%if %{with pgo}
+    -DCMAKE_C_FLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_C_FLAGS_RELEASE="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_CXX_FLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_CXX_FLAGS_RELEASE="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_EXE_LINKER_FLAGS="%{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_SHARED_LINKER_FLAGS="%{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
+    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \|sed -e 's#-Wl,--no-undefined##')" \
+%endif
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
