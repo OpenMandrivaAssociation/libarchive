@@ -133,8 +133,9 @@ export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 
 %ninja
 
-# run some tests
-%ninja test
+# run some tests, it may fail but still use data which we got
+%ninja test ||:
+
 unset LD_LIBRARY_PATH
 unset LLVM_PROFILE_FILE
 llvm-profdata merge --output=%{name}.profile $(find . -name "*.profile.d" -type f)
