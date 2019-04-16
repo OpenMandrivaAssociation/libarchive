@@ -5,7 +5,11 @@
 %global optflags %{optflags} -O3
 
 # (tpg) enable PGO build
+%ifnarch riscv64
 %bcond_without pgo
+%else
+%bcond_with pgo
+%endif
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
