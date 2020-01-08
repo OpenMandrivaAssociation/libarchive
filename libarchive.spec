@@ -37,8 +37,6 @@ BuildRequires:	pkgconfig(ext2fs)
 BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	pkgconfig(liblz4)
-BuildRequires:	pkgconfig(libbsd)
-BuildRequires:	kernel-release-devel
 
 %description
 Libarchive is a programming library that can create and read several
