@@ -20,7 +20,6 @@ Group:		System/Libraries
 Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
 Patch0:		libarchive-2.6.1-headers.patch
-Patch1:		libarchive-3.2.0-fix-install.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
