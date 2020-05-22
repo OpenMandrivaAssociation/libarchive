@@ -1,7 +1,7 @@
-diff -Naur libarchive-3.2.0/CMakeLists.txt libarchive-3.2.0.tpg/CMakeLists.txt
---- libarchive-3.2.0/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
-+++ libarchive-3.2.0.tpg/CMakeLists.txt	2016-05-08 04:30:14.066569889 +0000
-@@ -39,6 +39,16 @@
+diff -Naur libarchive-3.4.3/CMakeLists.txt libarchive-3.4.3.tpg/CMakeLists.txt
+--- libarchive-3.4.3/CMakeLists.txt	2020-05-20 00:18:52.000000000 +0000
++++ libarchive-3.4.3.tpg/CMakeLists.txt	2020-05-22 08:50:31.924007798 +0000
+@@ -42,6 +42,16 @@
  # detail in "cmake  --help-policy CMP0042"
  SET(CMAKE_MACOSX_RPATH ON)
  
@@ -18,9 +18,9 @@ diff -Naur libarchive-3.2.0/CMakeLists.txt libarchive-3.2.0.tpg/CMakeLists.txt
  #
  # Version - read from 'version' file.
  #
-diff -Naur libarchive-3.2.0/build/cmake/CreatePkgConfigFile.cmake libarchive-3.2.0.tpg/build/cmake/CreatePkgConfigFile.cmake
---- libarchive-3.2.0/build/cmake/CreatePkgConfigFile.cmake	2016-04-30 17:26:35.000000000 +0000
-+++ libarchive-3.2.0.tpg/build/cmake/CreatePkgConfigFile.cmake	2016-05-08 04:34:55.010145813 +0000
+diff -Naur libarchive-3.4.3/build/cmake/CreatePkgConfigFile.cmake libarchive-3.4.3.tpg/build/cmake/CreatePkgConfigFile.cmake
+--- libarchive-3.4.3/build/cmake/CreatePkgConfigFile.cmake	2020-04-30 01:40:25.000000000 +0000
++++ libarchive-3.4.3.tpg/build/cmake/CreatePkgConfigFile.cmake	2020-05-22 08:52:00.952008311 +0000
 @@ -4,7 +4,7 @@
  # Set the required variables (we use the same input file as autotools)
  SET(prefix ${CMAKE_INSTALL_PREFIX})
@@ -33,13 +33,13 @@ diff -Naur libarchive-3.2.0/build/cmake/CreatePkgConfigFile.cmake libarchive-3.2
 @@ -29,5 +29,5 @@
  # And install it, of course ;).
  IF(ENABLE_INSTALL)
-   INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/build/pkgconfig/libarchive.pc
+   INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/build/pkgconfig/libarchive.pc
 -          DESTINATION "lib/pkgconfig")
 +          DESTINATION "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}/pkgconfig")
  ENDIF()
-diff -Naur libarchive-3.2.0/cat/CMakeLists.txt libarchive-3.2.0.tpg/cat/CMakeLists.txt
---- libarchive-3.2.0/cat/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
-+++ libarchive-3.2.0.tpg/cat/CMakeLists.txt	2016-05-08 04:30:14.066569889 +0000
+diff -Naur libarchive-3.4.3/cat/CMakeLists.txt libarchive-3.4.3.tpg/cat/CMakeLists.txt
+--- libarchive-3.4.3/cat/CMakeLists.txt	2019-12-14 21:13:51.000000000 +0000
++++ libarchive-3.4.3.tpg/cat/CMakeLists.txt	2020-05-22 08:52:33.681008500 +0000
 @@ -30,7 +30,7 @@
    ENDIF(ENABLE_CAT_SHARED)
  
@@ -49,9 +49,9 @@ diff -Naur libarchive-3.2.0/cat/CMakeLists.txt libarchive-3.2.0.tpg/cat/CMakeLis
    INSTALL_MAN(${bsdcat_MANS})
  ENDIF(ENABLE_CAT)
  
-diff -Naur libarchive-3.2.0/cpio/CMakeLists.txt libarchive-3.2.0.tpg/cpio/CMakeLists.txt
---- libarchive-3.2.0/cpio/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
-+++ libarchive-3.2.0.tpg/cpio/CMakeLists.txt	2016-05-08 04:30:14.066569889 +0000
+diff -Naur libarchive-3.4.3/cpio/CMakeLists.txt libarchive-3.4.3.tpg/cpio/CMakeLists.txt
+--- libarchive-3.4.3/cpio/CMakeLists.txt	2019-12-14 21:13:51.000000000 +0000
++++ libarchive-3.4.3.tpg/cpio/CMakeLists.txt	2020-05-22 08:52:49.362008590 +0000
 @@ -39,7 +39,7 @@
    ENDIF(ENABLE_CPIO_SHARED)
  
@@ -61,10 +61,10 @@ diff -Naur libarchive-3.2.0/cpio/CMakeLists.txt libarchive-3.2.0.tpg/cpio/CMakeL
    INSTALL_MAN(${bsdcpio_MANS})
  
  ENDIF(ENABLE_CPIO)
-diff -Naur libarchive-3.2.0/libarchive/CMakeLists.txt libarchive-3.2.0.tpg/libarchive/CMakeLists.txt
---- libarchive-3.2.0/libarchive/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
-+++ libarchive-3.2.0.tpg/libarchive/CMakeLists.txt	2016-05-08 04:32:23.201050319 +0000
-@@ -208,9 +208,9 @@
+diff -Naur libarchive-3.4.3/libarchive/CMakeLists.txt libarchive-3.4.3.tpg/libarchive/CMakeLists.txt
+--- libarchive-3.4.3/libarchive/CMakeLists.txt	2020-01-27 23:19:39.000000000 +0000
++++ libarchive-3.4.3.tpg/libarchive/CMakeLists.txt	2020-05-22 08:56:41.968009931 +0000
+@@ -254,9 +254,9 @@
  IF(ENABLE_INSTALL)
    # How to install the libraries
    INSTALL(TARGETS archive archive_static
@@ -77,9 +77,9 @@ diff -Naur libarchive-3.2.0/libarchive/CMakeLists.txt libarchive-3.2.0.tpg/libar
    INSTALL_MAN(${libarchive_MANS})
    INSTALL(FILES ${include_HEADERS} DESTINATION include)
  ENDIF()
-diff -Naur libarchive-3.2.0/tar/CMakeLists.txt libarchive-3.2.0.tpg/tar/CMakeLists.txt
---- libarchive-3.2.0/tar/CMakeLists.txt	2016-04-30 17:26:35.000000000 +0000
-+++ libarchive-3.2.0.tpg/tar/CMakeLists.txt	2016-05-08 04:30:14.067569916 +0000
+diff -Naur libarchive-3.4.3/tar/CMakeLists.txt libarchive-3.4.3.tpg/tar/CMakeLists.txt
+--- libarchive-3.4.3/tar/CMakeLists.txt	2020-04-30 17:19:54.000000000 +0000
++++ libarchive-3.4.3.tpg/tar/CMakeLists.txt	2020-05-22 08:57:15.853010127 +0000
 @@ -43,7 +43,7 @@
    ENDIF(ENABLE_TAR_SHARED)
  
