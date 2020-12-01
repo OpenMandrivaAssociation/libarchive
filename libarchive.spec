@@ -13,12 +13,12 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.4.3
-Release:	2
+Version:	3.5.0
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
-Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.gz
+Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.xz
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
 BuildRequires:	cmake
