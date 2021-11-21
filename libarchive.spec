@@ -5,16 +5,12 @@
 %global optflags %{optflags} -O3
 
 # (tpg) enable PGO build
-%ifnarch riscv64
-%bcond_with pgo
-%else
-%bcond_with pgo
-%endif
+%bcond_without pgo
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.5.2
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -111,18 +107,17 @@ decompresses a variety of files
 %build
 
 %if %{with pgo}
-export LLVM_PROFILE_FILE=%{name}-%p.profile.d
 export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 %cmake -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_FLAGS="%{optflags} -fprofile-instr-generate" \
-    -DCMAKE_C_FLAGS_RELEASE="%{optflags} -fprofile-instr-generate" \
-    -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-generate" \
-    -DCMAKE_CXX_FLAGS="%{optflags} -fprofile-instr-generate" \
-    -DCMAKE_CXX_FLAGS_RELEASE="%{optflags} -fprofile-instr-generate" \
-    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-generate" \
-    -DCMAKE_EXE_LINKER_FLAGS="%{ldflags} -fprofile-instr-generate" \
-    -DCMAKE_SHARED_LINKER_FLAGS="%{ldflags} -fprofile-instr-generate" \
-    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{ldflags} -fprofile-instr-generate|sed -e 's#-Wl,--no-undefined##')" \
+    -DCMAKE_C_FLAGS="%{optflags} -fprofile-generate" \
+    -DCMAKE_C_FLAGS_RELEASE="%{optflags} -fprofile-generate" \
+    -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-generate" \
+    -DCMAKE_CXX_FLAGS="%{optflags} -fprofile-generate" \
+    -DCMAKE_CXX_FLAGS_RELEASE="%{optflags} -fprofile-generate" \
+    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-generate" \
+    -DCMAKE_EXE_LINKER_FLAGS="%{build_ldflags} -fprofile-generate" \
+    -DCMAKE_SHARED_LINKER_FLAGS="%{build_ldflags} -fprofile-generate" \
+    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{build_ldflags} -fprofile-generate|sed -e 's#-Wl,--no-undefined##')" \
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
@@ -141,24 +136,24 @@ export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 %ninja test ||:
 
 unset LD_LIBRARY_PATH
-unset LLVM_PROFILE_FILE
-llvm-profdata merge --output=%{name}.profile $(find . -name "*.profile.d" -type f)
-find . -name "*.profile.d" -type f -delete
+llvm-profdata merge --output=%{name}-llvm.profdata $(find . -name "*.profraw" -type f)
+PROFDATA="$(realpath %{name}-llvm.profdata)"
+find . -name "*.profraw" -type f -delete
 ninja -t clean
 cd ..
 %endif
 
 %cmake -DCMAKE_BUILD_TYPE=Release \
 %if %{with pgo}
-    -DCMAKE_C_FLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_C_FLAGS_RELEASE="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_CXX_FLAGS="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_CXX_FLAGS_RELEASE="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_EXE_LINKER_FLAGS="%{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_SHARED_LINKER_FLAGS="%{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \
-    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{ldflags} -fprofile-instr-use=$(realpath %{name}.profile)" \|sed -e 's#-Wl,--no-undefined##')" \
+    -DCMAKE_C_FLAGS="%{optflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_C_FLAGS_RELEASE="%{optflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_C_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_CXX_FLAGS="%{optflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_CXX_FLAGS_RELEASE="%{optflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_EXE_LINKER_FLAGS="%{build_ldflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_SHARED_LINKER_FLAGS="%{build_ldflags} -fprofile-use=$PROFDATA" \
+    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{build_ldflags} -fprofile-use=$PROFDATA" \|sed -e 's#-Wl,--no-undefined##')" \
 %endif
     -DBIN_INSTALL_DIR="/bin" \
     -DLIB_INSTALL_DIR="/%{_lib}" \
@@ -207,18 +202,18 @@ done
 %doc NEWS
 /bin/tar
 /bin/bsdtar
-%{_mandir}/man1/tar.1*
-%{_mandir}/man1/bsdtar.1*
+%doc %{_mandir}/man1/tar.1*
+%doc %{_mandir}/man1/bsdtar.1*
 
 %files -n cpio
 /bin/cpio
 /bin/bsdcpio
-%{_mandir}/man1/cpio.1*
-%{_mandir}/man1/bsdcpio.1*
+%doc %{_mandir}/man1/cpio.1*
+%doc %{_mandir}/man1/bsdcpio.1*
 
 %files -n bsdcat
 /bin/bsdcat
-%{_mandir}/man1/bsdcat.1*
+%doc %{_mandir}/man1/bsdcat.1*
 
 %files -n %{libname}
 /%{_lib}/libarchive.so.%{major}*
@@ -227,5 +222,5 @@ done
 %{_libdir}/%{name}*.so
 %{_libdir}/pkgconfig/libarchive.pc
 %{_includedir}/*.h
-%{_mandir}/man3/*
-%{_mandir}/man5/*
+%doc %{_mandir}/man3/*
+%doc %{_mandir}/man5/*
