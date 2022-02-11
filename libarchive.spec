@@ -1,4 +1,4 @@
-%define major 18
+%define major 19
 %define libname %mklibname archive %{major}
 %define devname %mklibname archive -d
 
@@ -9,8 +9,8 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.5.2
-Release:	2
+Version:	3.6.0
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -118,8 +118,6 @@ export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
     -DCMAKE_EXE_LINKER_FLAGS="%{build_ldflags} -fprofile-generate" \
     -DCMAKE_SHARED_LINKER_FLAGS="%{build_ldflags} -fprofile-generate" \
     -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{build_ldflags} -fprofile-generate|sed -e 's#-Wl,--no-undefined##')" \
-    -DBIN_INSTALL_DIR="/bin" \
-    -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
     -DENABLE_EXPAT=FALSE \
     -DENABLE_NETTLE=OFF \
@@ -155,8 +153,6 @@ cd ..
     -DCMAKE_SHARED_LINKER_FLAGS="%{build_ldflags} -fprofile-use=$PROFDATA" \
     -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{build_ldflags} -fprofile-use=$PROFDATA" \|sed -e 's#-Wl,--no-undefined##')" \
 %endif
-    -DBIN_INSTALL_DIR="/bin" \
-    -DLIB_INSTALL_DIR="/%{_lib}" \
     -DENABLE_LIBXML2=FALSE \
     -DENABLE_EXPAT=FALSE \
     -DENABLE_NETTLE=OFF \
@@ -172,25 +168,19 @@ cd ..
 %install
 %ninja_install -C build
 
-#(proyvind) move to /%{_lib}
-install -d %{buildroot}/%{_libdir}
 
 # (tpg) not needed
-rm %{buildroot}/%{_lib}/libarchive.so
 rm %{buildroot}/%{_libdir}/libarchive.a
 
-#mv %{buildroot}%{_libdir}/libarchive.so.%{major}* %{buildroot}/%{_lib}
-echo "pay attention here"
-ln -sr %{buildroot}/%{_lib}/libarchive.so.%{major} %{buildroot}%{_libdir}/libarchive.so
-
 # Make bsdtar and bsdcpio the default tar and cpio implementations
+mkdir -p  %{buildroot}/bin
 for i in tar cpio; do
-    mv %{buildroot}/bin/bsd${i} %{buildroot}/bin/${i}
-    mv %{buildroot}%{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
-# For compatibility with stuff hardcoding it
-    ln -s ${i} %{buildroot}/bin/bsd${i}
-    ln -s ${i}.1 %{buildroot}%{_mandir}/man1/bsd${i}.1
+    ln -sf %{_bindir}/bsd${i} %{buildroot}%{_bindir}/${i}
+    ln -sf %{_bindir}/bsd${i} %{buildroot}/bin/${i}
+    ln -sf %{_bindir}/bsd${i} %{buildroot}/bin/bsd${i}
+    ln -sf %{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
 done
+ln -sf %{_bindir}/bsdcat %{buildroot}/bin/bsdcat
 
 # (tpg) checks for i586 and x86_64 fails for some very strange reasons
 # here is a good explanation and possible workaround... but no time for this
@@ -202,21 +192,26 @@ done
 %doc NEWS
 /bin/tar
 /bin/bsdtar
+%{_bindir}/tar
+%{_bindir}/bsdtar
 %doc %{_mandir}/man1/tar.1*
 %doc %{_mandir}/man1/bsdtar.1*
 
 %files -n cpio
 /bin/cpio
 /bin/bsdcpio
+%{_bindir}/cpio
+%{_bindir}/bsdcpio
 %doc %{_mandir}/man1/cpio.1*
 %doc %{_mandir}/man1/bsdcpio.1*
 
 %files -n bsdcat
 /bin/bsdcat
+%{_bindir}/bsdcat
 %doc %{_mandir}/man1/bsdcat.1*
 
 %files -n %{libname}
-/%{_lib}/libarchive.so.%{major}*
+%{_libdir}/libarchive.so.%{major}*
 
 %files -n %{devname}
 %{_libdir}/%{name}*.so
