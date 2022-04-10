@@ -9,12 +9,16 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.6.0
+Version:	3.6.1
 Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.xz
+# zip and unzip implementations on top of libarchive -- from FreeBSD
+# Let's drop unmaintained-for-a-decade info-zip...
+Source1:	https://raw.githubusercontent.com/freebsd/freebsd-src/master/usr.bin/unzip/unzip.c
+Source2:	https://raw.githubusercontent.com/freebsd/freebsd-src/master/usr.bin/unzip/unzip.1
 Patch0:		libarchive-2.6.1-headers.patch
 Patch1:		libarchive-3.2.0-fix-install.patch
 BuildRequires:	cmake
@@ -93,6 +97,13 @@ implementation can extract from tar, pax, cpio, zip, jar, ar, and
 ISO 9660 cdrom images and can create tar, pax, cpio, ar, and shar
 archives.
 
+%package -n libarchive-unzip
+Summary:	Extract files from zip archives
+Group:		Archiving/Backup
+
+%description -n libarchive-unzip
+Tool to extract files from zip archives
+
 %package -n bsdcat
 Summary:	Expand files to standard output
 Group:		Archiving/Backup
@@ -165,9 +176,14 @@ cd ..
 
 %ninja
 
+# Let's make it Linux compatible with sed as long as it's a one-liner...
+sed -e 's,optreset = ,,' %{S:1} >unzip.c
+%{__cc} %{optflags} -D_GNU_SOURCE=1 -o unzip unzip.c -L$(pwd)/libarchive -larchive
+
 %install
 %ninja_install -C build
-
+install -c -m 755 build/unzip %{buildroot}%{_bindir}/
+install -c -m 644 %{S:2} %{buildroot}%{_mandir}/man1/
 
 # (tpg) not needed
 rm %{buildroot}/%{_libdir}/libarchive.a
@@ -204,6 +220,10 @@ ln -sf %{_bindir}/bsdcat %{buildroot}/bin/bsdcat
 %{_bindir}/bsdcpio
 %doc %{_mandir}/man1/cpio.1*
 %doc %{_mandir}/man1/bsdcpio.1*
+
+%files -n libarchive-unzip
+%{_bindir}/unzip
+%doc %{_mandir}/man1/unzip.1*
 
 %files -n bsdcat
 /bin/bsdcat
