@@ -178,7 +178,7 @@ cd ..
 
 # Let's make it Linux compatible with sed as long as it's a one-liner...
 sed -e 's,optreset = ,,' %{S:1} >unzip.c
-%{__cc} %{optflags} -D_GNU_SOURCE=1 -o unzip unzip.c -L$(pwd)/libarchive -larchive
+%{__cc} %{optflags} -D_GNU_SOURCE=1 -I$(pwd)/../libarchive -o unzip unzip.c -L$(pwd)/libarchive -larchive
 
 %install
 %ninja_install -C build
