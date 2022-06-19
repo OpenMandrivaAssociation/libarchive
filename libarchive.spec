@@ -10,7 +10,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.6.1
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -189,14 +189,10 @@ install -c -m 644 %{S:2} %{buildroot}%{_mandir}/man1/
 rm %{buildroot}/%{_libdir}/libarchive.a
 
 # Make bsdtar and bsdcpio the default tar and cpio implementations
-mkdir -p  %{buildroot}/bin
 for i in tar cpio; do
     ln -sf %{_bindir}/bsd${i} %{buildroot}%{_bindir}/${i}
-    ln -sf %{_bindir}/bsd${i} %{buildroot}/bin/${i}
-    ln -sf %{_bindir}/bsd${i} %{buildroot}/bin/bsd${i}
     ln -sf %{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
 done
-ln -sf %{_bindir}/bsdcat %{buildroot}/bin/bsdcat
 
 # (tpg) checks for i586 and x86_64 fails for some very strange reasons
 # here is a good explanation and possible workaround... but no time for this
@@ -206,16 +202,12 @@ ln -sf %{_bindir}/bsdcat %{buildroot}/bin/bsdcat
 
 %files -n tar
 %doc NEWS
-/bin/tar
-/bin/bsdtar
 %{_bindir}/tar
 %{_bindir}/bsdtar
 %doc %{_mandir}/man1/tar.1*
 %doc %{_mandir}/man1/bsdtar.1*
 
 %files -n cpio
-/bin/cpio
-/bin/bsdcpio
 %{_bindir}/cpio
 %{_bindir}/bsdcpio
 %doc %{_mandir}/man1/cpio.1*
@@ -226,7 +218,6 @@ ln -sf %{_bindir}/bsdcat %{buildroot}/bin/bsdcat
 %doc %{_mandir}/man1/unzip.1*
 
 %files -n bsdcat
-/bin/bsdcat
 %{_bindir}/bsdcat
 %doc %{_mandir}/man1/bsdcat.1*
 
