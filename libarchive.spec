@@ -10,7 +10,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.6.2
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -78,6 +78,7 @@ This package contains header files for the libarchive library.
 %package -n tar
 Summary:	Full-featured tar replacement built on libarchive
 Group:		Archiving/Backup
+Requires:   chkconfig
 Suggests:	/usr/bin/rsh
 %rename		bsdtar
 
@@ -88,6 +89,7 @@ libarchive.
 %package -n cpio
 Summary:	Copy files to and from archives
 Group:		Archiving/Backup
+Requires:   chkconfig
 Suggests:	rmt
 %rename		bsdcpio
 
@@ -188,12 +190,6 @@ install -c -m 644 %{S:2} %{buildroot}%{_mandir}/man1/
 # (tpg) not needed
 rm %{buildroot}/%{_libdir}/libarchive.a
 
-# Make bsdtar and bsdcpio the default tar and cpio implementations
-for i in tar cpio; do
-    ln -sf %{_bindir}/bsd${i} %{buildroot}%{_bindir}/${i}
-    ln -sf %{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
-done
-
 # (tpg) checks for i586 and x86_64 fails for some very strange reasons
 # here is a good explanation and possible workaround... but no time for this
 # https://github.com/libarchive/libarchive/issues/723
@@ -202,15 +198,11 @@ done
 
 %files -n tar
 %doc NEWS
-%{_bindir}/tar
 %{_bindir}/bsdtar
-%doc %{_mandir}/man1/tar.1*
 %doc %{_mandir}/man1/bsdtar.1*
 
 %files -n cpio
-%{_bindir}/cpio
 %{_bindir}/bsdcpio
-%doc %{_mandir}/man1/cpio.1*
 %doc %{_mandir}/man1/bsdcpio.1*
 
 %files -n libarchive-unzip
@@ -230,3 +222,15 @@ done
 %{_includedir}/*.h
 %doc %{_mandir}/man3/*
 %doc %{_mandir}/man5/*
+
+%post -n tar
+alternatives --install /usr/bin/tar tar /usr/bin/bsdtar 99
+
+%post -n cpio
+alternatives --install /usr/bin/cpio cpio /usr/bin/bsdcpio 99
+
+%postun -n tar
+alternatives --remove tar /usr/bin/bsdtar
+
+%postun -n cpio
+alternatives --remove cpio /usr/bin/bsdcpio
