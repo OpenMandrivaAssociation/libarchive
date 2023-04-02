@@ -5,7 +5,11 @@
 %global optflags %{optflags} -O3
 
 # (tpg) enable PGO build
+%if %{cross_compiling}
+%bcond_with pgo
+%else
 %bcond_without pgo
+%endif
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
@@ -194,11 +198,13 @@ for i in tar cpio; do
     ln -sf %{_mandir}/man1/bsd${i}.1 %{buildroot}%{_mandir}/man1/${i}.1
 done
 
+%if ! %{cross_compiling}
 # (tpg) checks for i586 and x86_64 fails for some very strange reasons
 # here is a good explanation and possible workaround... but no time for this
 # https://github.com/libarchive/libarchive/issues/723
 #check
 #ninja -C build test
+%endif
 
 %files -n tar
 %doc NEWS
