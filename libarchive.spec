@@ -54,7 +54,6 @@ standard system tar for OpenMandriva Lx and FreeBSD.
 Summary:	Library for reading and writing streaming archives
 Group:		System/Libraries
 %rename		%{_lib}archive1
-Obsoletes:	%{oldlibname} < %{EVRD}
 
 %description -n %{libname}
 Libarchive is a programming library that can create and read several
