@@ -1,5 +1,6 @@
-%define major 19
-%define libname %mklibname archive %{major}
+%define major 20
+%define oldlibname %mklibname archive 19
+%define libname %mklibname archive
 %define devname %mklibname archive -d
 
 %global optflags %{optflags} -O3
@@ -19,10 +20,6 @@ License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
 Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.xz
-# zip and unzip implementations on top of libarchive -- from FreeBSD
-# Let's drop unmaintained-for-a-decade info-zip...
-Source1:	https://raw.githubusercontent.com/freebsd/freebsd-src/master/usr.bin/unzip/unzip.c
-Source2:	https://raw.githubusercontent.com/freebsd/freebsd-src/master/usr.bin/unzip/unzip.1
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -57,6 +54,7 @@ standard system tar for OpenMandriva Lx and FreeBSD.
 Summary:	Library for reading and writing streaming archives
 Group:		System/Libraries
 %rename		%{_lib}archive1
+Obsoletes:	%{oldlibname} < %{EVRD}
 
 %description -n %{libname}
 Libarchive is a programming library that can create and read several
@@ -117,8 +115,12 @@ decompresses a variety of files
 %prep
 %autosetup -p1
 
-%build
+%if "%{_lib}" != "lib"
+find . -name CMakeLists.txt |xargs sed -i -e 's,DESTINATION lib,DESTINATION %{_lib},g'
+sed -i -e 's,DESTINATION "lib,DESTINATION "%{_lib},g' build/cmake/CreatePkgConfigFile.cmake
+%endif
 
+%build
 %if %{with pgo}
 export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 %cmake -DCMAKE_BUILD_TYPE=Release \
@@ -131,14 +133,15 @@ export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
     -DCMAKE_EXE_LINKER_FLAGS="%{build_ldflags} -fprofile-generate" \
     -DCMAKE_SHARED_LINKER_FLAGS="%{build_ldflags} -fprofile-generate" \
     -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{build_ldflags} -fprofile-generate|sed -e 's#-Wl,--no-undefined##')" \
-    -DENABLE_LIBXML2=FALSE \
-    -DENABLE_EXPAT=FALSE \
+    -DENABLE_LIBXML2=OFF \
+    -DENABLE_EXPAT=OFF \
     -DENABLE_NETTLE=OFF \
     -DENABLE_OPENSSL=ON \
     -DENABLE_LZO=ON \
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
+    -DENABLE_UNZIP_SHARED=ON \
     -G Ninja
 
 %ninja
@@ -174,18 +177,13 @@ cd ..
     -DENABLE_CAT_SHARED=ON \
     -DENABLE_CPIO_SHARED=ON \
     -DENABLE_TAR_SHARED=ON \
+    -DENABLE_UNZIP=ON \
     -G Ninja
 
 %ninja
 
-# Let's make it Linux compatible with sed as long as it's a one-liner...
-sed -e 's,optreset = ,,' %{S:1} >unzip.c
-%{__cc} %{optflags} -D_GNU_SOURCE=1 -I$(pwd)/../libarchive -o unzip unzip.c -L$(pwd)/libarchive -larchive
-
 %install
 %ninja_install -C build
-install -c -m 755 build/unzip %{buildroot}%{_bindir}/
-install -c -m 644 %{S:2} %{buildroot}%{_mandir}/man1/
 
 # (tpg) not needed
 rm %{buildroot}/%{_libdir}/libarchive.a
@@ -218,8 +216,8 @@ done
 %doc %{_mandir}/man1/bsdcpio.1*
 
 %files -n libarchive-unzip
-%{_bindir}/unzip
-%doc %{_mandir}/man1/unzip.1*
+%{_bindir}/bsdunzip
+%doc %{_mandir}/man1/bsdunzip.1*
 
 %files -n bsdcat
 %{_bindir}/bsdcat
