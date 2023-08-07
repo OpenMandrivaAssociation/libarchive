@@ -13,8 +13,8 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.6.2
-Release:	2
+Version:	3.7.1
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		http://www.libarchive.org/
@@ -23,8 +23,6 @@ Source0:	http://www.libarchive.org/downloads/%{name}-%{version}.tar.xz
 # Let's drop unmaintained-for-a-decade info-zip...
 Source1:	https://raw.githubusercontent.com/freebsd/freebsd-src/master/usr.bin/unzip/unzip.c
 Source2:	https://raw.githubusercontent.com/freebsd/freebsd-src/master/usr.bin/unzip/unzip.1
-Patch0:		libarchive-2.6.1-headers.patch
-Patch1:		libarchive-3.2.0-fix-install.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
