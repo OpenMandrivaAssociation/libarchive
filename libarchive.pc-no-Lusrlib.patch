@@ -1,0 +1,11 @@
+diff -up libarchive-3.7.1/build/pkgconfig/libarchive.pc.in.omv~ libarchive-3.7.1/build/pkgconfig/libarchive.pc.in
+--- libarchive-3.7.1/build/pkgconfig/libarchive.pc.in.omv~	2023-08-10 16:43:06.907699733 +0200
++++ libarchive-3.7.1/build/pkgconfig/libarchive.pc.in	2023-08-10 16:43:17.180803860 +0200
+@@ -8,6 +8,6 @@ Description: library that can create and
+ Version: @VERSION@
+ Cflags: -I${includedir}
+ Cflags.private: -DLIBARCHIVE_STATIC
+-Libs: -L${libdir} -larchive
++Libs: -larchive
+ Libs.private: @LIBS@
+ Requires.private: @LIBSREQUIRED@
