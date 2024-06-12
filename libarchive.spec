@@ -2,8 +2,16 @@
 %define oldlibname %mklibname archive 19
 %define libname %mklibname archive
 %define devname %mklibname archive -d
+%define lib32name %mklib32name archive
+%define dev32name %mklib32name archive -d
 
 %global optflags %{optflags} -O3
+
+%ifarch %{x86_64}
+%bcond_without compat32
+%else
+%bcond_with compat32
+%endif
 
 # (tpg) enable PGO build
 %if %{cross_compiling}
@@ -15,7 +23,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.7.4
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		https://www.libarchive.org/
@@ -38,6 +46,13 @@ BuildRequires:	pkgconfig(liblzma)
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:	pkgconfig(liblz4)
 BuildRequires:	pkgconfig(libb2)
+%if %{with compat32}
+BuildRequires:	devel(libbz2)
+BuildRequires:	devel(libzstd)
+BuildRequires:	devel(libssl)
+BuildRequires:	devel(liblzma)
+BuildRequires:	devel(libz)
+%endif
 
 %description
 Libarchive is a programming library that can create and read several
@@ -74,6 +89,34 @@ Provides:	%{name}-devel = %{version}-%{release}
 
 %description -n %{devname}
 This package contains header files for the libarchive library.
+
+%if %{with compat32}
+%if "%{name}" != "%{lib32name}"
+%package -n %{lib32name}
+Summary:	32-bit Library for reading and writing streaming archives
+Group:		System/Libraries
+%rename		%{_lib}archive1
+
+%description -n %{lib32name}
+Libarchive is a programming library that can create and read several
+different streaming archive formats, including most popular tar
+variants and several cpio formats. It can also write shar archives and
+read ISO9660 CDROM images and ZIP archives.
+
+The bsdtar program is an implementation of tar(1) that is built on
+top of libarchive. It started as a test harness, but has grown and is
+now the standard system tar for OpenMandriva Lx and FreeBSD.
+%endif
+
+%package -n %{dev32name}
+Summary:	32-bit Development library and header files for the libarchive library
+Group:		Development/C
+Requires:	%{libname} = %{version}-%{release}
+Provides:	%{name}-devel = %{version}-%{release}
+
+%description -n %{dev32name}
+This package contains header files for the libarchive library.
+%endif
 
 %package -n tar
 Summary:	Full-featured tar replacement built on libarchive
@@ -115,12 +158,23 @@ decompresses a variety of files
 %prep
 %autosetup -p1
 
-%if "%{_lib}" != "lib"
-find . -name CMakeLists.txt |xargs sed -i -e 's,DESTINATION lib,DESTINATION %{_lib},g'
-sed -i -e 's,DESTINATION "lib,DESTINATION "%{_lib},g' build/cmake/CreatePkgConfigFile.cmake
+find . -name CMakeLists.txt |xargs sed -i -e 's,DESTINATION lib,DESTINATION \${CMAKE_INSTALL_LIBDIR},g'
+sed -i -e 's,DESTINATION "lib,DESTINATION "\${CMAKE_INSTALL_LIBDIR},g' build/cmake/CreatePkgConfigFile.cmake
+
+%if %{with compat32}
+%conf
+%cmake32 \
+	-DCMAKE_BUILD_TYPE=Release \
+	-G Ninja
+
+# The rest of %%conf happens in %%build for PGO
 %endif
 
 %build
+%if %{with compat32}
+%ninja_build -C build32
+%endif
+
 %if %{with pgo}
 export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
 %cmake -DCMAKE_BUILD_TYPE=Release \
@@ -144,7 +198,7 @@ export LD_LIBRARY_PATH="$(pwd)/build/libarchive"
     -DENABLE_UNZIP_SHARED=ON \
     -G Ninja
 
-%ninja
+%ninja_build
 
 # run some tests, it may fail but still use data which we got
 %ninja test ||:
@@ -180,9 +234,12 @@ cd ..
     -DENABLE_UNZIP=ON \
     -G Ninja
 
-%ninja
+%ninja_build
 
 %install
+%if %{with compat32}
+%ninja_install -C build32
+%endif
 %ninja_install -C build
 
 # (tpg) not needed
@@ -232,3 +289,13 @@ done
 %{_includedir}/*.h
 %doc %{_mandir}/man3/*
 %doc %{_mandir}/man5/*
+
+%if %{with compat32}
+%files -n %{lib32name}
+%{_prefix}/lib/libarchive.so.%{major}*
+
+%files -n %{dev32name}
+%{_prefix}/lib/%{name}*.so
+%{_prefix}/lib/%{name}*.a
+%{_prefix}/lib/pkgconfig/libarchive.pc
+%endif
