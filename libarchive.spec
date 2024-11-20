@@ -1,4 +1,4 @@
-%define major 20
+%define major 13
 %define oldlibname %mklibname archive 19
 %define libname %mklibname archive
 %define devname %mklibname archive -d
@@ -22,8 +22,8 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.7.4
-Release:	2
+Version:	3.7.7
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		https://www.libarchive.org/
@@ -70,6 +70,13 @@ standard system tar for OpenMandriva Lx and FreeBSD.
 Summary:	Library for reading and writing streaming archives
 Group:		System/Libraries
 %rename		%{_lib}archive1
+%ifarch %{x86_64} %{aarch64}
+# Workaround for old versions (prior to OM 6.0)
+# actually having a higher soname
+# ifarch-ed because other architectures didn't
+# get the older libarchive
+Provides:	libarchive.so.20()(64bit)
+%endif
 
 %description -n %{libname}
 Libarchive is a programming library that can create and read several
@@ -96,6 +103,13 @@ This package contains header files for the libarchive library.
 Summary:	32-bit Library for reading and writing streaming archives
 Group:		System/Libraries
 %rename		%{_lib}archive1
+%ifarch %{x86_64} %{aarch64}
+# Workaround for old versions (prior to OM 6.0)
+# actually having a higher soname
+# ifarch-ed because other architectures didn't
+# get the older libarchive
+Provides:	libarchive.so.20
+%endif
 
 %description -n %{lib32name}
 Libarchive is a programming library that can create and read several
@@ -259,6 +273,16 @@ done
 #ninja -C build test
 %endif
 
+%ifarch %{x86_64} %{aarch64}
+# Workaround for previous versions actually using higher soname versions
+# (but providing the same ABI)
+# 3.7.4 was libarchive.so.20
+ln -s libarchive.so.13 %{buildroot}%{_libdir}/libarchive.so.20
+%if %{with compat32}
+ln -s libarchive.so.13 %{buildroot}%{_prefix}/lib/libarchive.so.20
+%endif
+%endif
+
 %files -n tar
 %doc NEWS
 %{_bindir}/tar
@@ -282,6 +306,9 @@ done
 
 %files -n %{libname}
 %{_libdir}/libarchive.so.%{major}*
+%ifarch %{x86_64} %{aarch64}
+%{_libdir}/libarchive.so.20
+%endif
 
 %files -n %{devname}
 %{_libdir}/%{name}*.so
@@ -293,6 +320,9 @@ done
 %if %{with compat32}
 %files -n %{lib32name}
 %{_prefix}/lib/libarchive.so.%{major}*
+%ifarch %{x86_64} %{aarch64}
+%{_prefix}/lib/libarchive.so.20
+%endif
 
 %files -n %{dev32name}
 %{_prefix}/lib/%{name}*.so
