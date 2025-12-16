@@ -22,13 +22,12 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.8.2
+Version:	3.8.4
 Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		https://www.libarchive.org/
 Source0:	https://www.libarchive.org/downloads/%{name}-%{version}.tar.xz
-Patch0:		libarchive.pc-no-Lusrlib.patch
 BuildRequires:	cmake
 BuildRequires:	ninja
 BuildRequires:	bison
@@ -53,6 +52,10 @@ BuildRequires:	devel(libssl)
 BuildRequires:	devel(liblzma)
 BuildRequires:	devel(libz)
 %endif
+
+%patchlist
+libarchive.pc-no-Lusrlib.patch
+libarchive-rpm6.patch
 
 %description
 Libarchive is a programming library that can create and read several
