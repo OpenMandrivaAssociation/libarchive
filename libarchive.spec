@@ -55,7 +55,6 @@ BuildRequires:	devel(libz)
 
 %patchlist
 libarchive.pc-no-Lusrlib.patch
-libarchive-rpm6.patch
 
 %description
 Libarchive is a programming library that can create and read several
