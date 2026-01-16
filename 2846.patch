@@ -1,0 +1,1122 @@
+diff -up libarchive-3.8.4/libarchive/archive.h.2~ libarchive-3.8.4/libarchive/archive.h
+--- libarchive-3.8.4/libarchive/archive.h.2~	2025-12-01 13:42:06.000000000 +0100
++++ libarchive-3.8.4/libarchive/archive.h	2026-01-16 15:15:47.335202650 +0100
+@@ -359,6 +359,7 @@ typedef const char *archive_passphrase_c
+ #define	ARCHIVE_FORMAT_CPIO_SVR4_CRC		(ARCHIVE_FORMAT_CPIO | 5)
+ #define	ARCHIVE_FORMAT_CPIO_AFIO_LARGE		(ARCHIVE_FORMAT_CPIO | 6)
+ #define	ARCHIVE_FORMAT_CPIO_PWB			(ARCHIVE_FORMAT_CPIO | 7)
++#define	ARCHIVE_FORMAT_CPIO_STR			(ARCHIVE_FORMAT_CPIO | 8)
+ #define	ARCHIVE_FORMAT_SHAR			0x20000
+ #define	ARCHIVE_FORMAT_SHAR_BASE		(ARCHIVE_FORMAT_SHAR | 1)
+ #define	ARCHIVE_FORMAT_SHAR_DUMP		(ARCHIVE_FORMAT_SHAR | 2)
+diff -up libarchive-3.8.4/libarchive/archive_entry_link_resolver.c.2~ libarchive-3.8.4/libarchive/archive_entry_link_resolver.c
+--- libarchive-3.8.4/libarchive/archive_entry_link_resolver.c.2~	2025-11-17 23:04:25.000000000 +0100
++++ libarchive-3.8.4/libarchive/archive_entry_link_resolver.c	2026-01-16 15:15:47.335278051 +0100
+@@ -133,6 +133,7 @@ archive_entry_linkresolver_set_strategy(
+ 		switch (fmt) {
+ 		case ARCHIVE_FORMAT_CPIO_SVR4_NOCRC:
+ 		case ARCHIVE_FORMAT_CPIO_SVR4_CRC:
++		case ARCHIVE_FORMAT_CPIO_STR:
+ 			res->strategy = ARCHIVE_ENTRY_LINKIFY_LIKE_NEW_CPIO;
+ 			break;
+ 		default:
+diff -up libarchive-3.8.4/libarchive/archive_private.h.2~ libarchive-3.8.4/libarchive/archive_private.h
+--- libarchive-3.8.4/libarchive/archive_private.h.2~	2025-11-17 23:04:25.000000000 +0100
++++ libarchive-3.8.4/libarchive/archive_private.h	2026-01-16 15:15:47.334515610 +0100
+@@ -93,6 +93,13 @@ struct archive_vtable {
+ 	const char * (*archive_filter_name)(struct archive *, int);
+ };
+ 
++struct archive_private_metadata {
++	const char						*key;
++	void							*data;
++	void							(*free_fn)(void *);
++	struct archive_private_metadata *next;
++};
++
+ struct archive_string_conv;
+ 
+ struct archive {
+diff -up libarchive-3.8.4/libarchive/archive_read.c.2~ libarchive-3.8.4/libarchive/archive_read.c
+--- libarchive-3.8.4/libarchive/archive_read.c.2~	2025-11-17 23:04:25.000000000 +0100
++++ libarchive-3.8.4/libarchive/archive_read.c	2026-01-16 15:15:47.334623992 +0100
+@@ -1065,6 +1065,7 @@ _archive_read_free(struct archive *_a)
+ {
+ 	struct archive_read *a = (struct archive_read *)_a;
+ 	struct archive_read_passphrase *p;
++	struct archive_private_metadata *m;
+ 	int i, n;
+ 	int slots;
+ 	int r = ARCHIVE_OK;
+@@ -1113,6 +1114,17 @@ _archive_read_free(struct archive *_a)
+ 		p = np;
+ 	}
+ 
++	/* Release private metadata. */
++	m = a->metadata;
++	while (m != NULL) {
++		struct archive_private_metadata *nm = m->next;
++
++		if (m->free_fn)
++			m->free_fn(m->data);
++		free(m);
++		m = nm;
++	}
++
+ 	archive_string_free(&a->archive.error_string);
+ 	archive_entry_free(a->entry);
+ 	a->archive.magic = 0;
+@@ -1259,6 +1271,71 @@ __archive_read_register_bidder(struct ar
+ 	return (ARCHIVE_FATAL);
+ }
+ 
++void *
++__archive_read_get_private(struct archive_read *a, const char *key)
++{
++	struct archive_private_metadata *m;
++
++	for (m = a->metadata; m != NULL; m = m->next) {
++		if (strcmp(m->key, key) == 0)
++			return m->data;
++	}
++
++	return NULL;
++}
++
++int
++__archive_read_set_private(struct archive_read *a,
++	const char *key,
++	void *data,
++	void (*free_fn)(void *))
++{
++	struct archive_private_metadata *m;
++
++	/* Replace if exists */
++	for (m = a->metadata; m != NULL; m = m->next) {
++		if (strcmp(m->key, key) == 0) {
++			if (m->free_fn)
++				m->free_fn(m->data);
++			m->data = data;
++			m->free_fn = free_fn;
++			return ARCHIVE_OK;
++		}
++	}
++
++	/* Insert new */
++	m = calloc(1, sizeof(*m));
++	if (!m)
++		return ARCHIVE_FATAL;
++
++	m->key = key;
++	m->data = data;
++	m->free_fn = free_fn;
++	m->next = a->metadata;
++	a->metadata = m;
++
++	return ARCHIVE_OK;
++}
++
++void
++__archive_read_clear_private(struct archive_read *a, const char *key)
++{
++	struct archive_private_metadata **pm = &a->metadata;
++	struct archive_private_metadata *m;
++
++	while ((m = *pm) != NULL) {
++		if (strcmp(m->key, key) == 0) {
++			*pm = m->next;
++			if (m->free_fn)
++				m->free_fn(m->data);
++			free(m);
++			return;
++		}
++
++		pm = &m->next;
++	}
++}
++
+ /*
+  * The next section implements the peek/consume internal I/O
+  * system used by archive readers.  This system allows simple
+diff -up libarchive-3.8.4/libarchive/archive_read_private.h.2~ libarchive-3.8.4/libarchive/archive_read_private.h
+--- libarchive-3.8.4/libarchive/archive_read_private.h.2~	2025-11-17 23:04:25.000000000 +0100
++++ libarchive-3.8.4/libarchive/archive_read_private.h	2026-01-16 15:15:47.335437663 +0100
+@@ -160,6 +160,8 @@ struct archive_read {
+ 
+ 	struct archive_entry	*entry;
+ 
++	struct archive_private_metadata	*metadata;
++
+ 	/* Dev/ino of the archive being read/written. */
+ 	int		  skip_file_set;
+ 	int64_t		  skip_file_dev;
+@@ -244,6 +246,12 @@ int __archive_read_register_bidder(struc
+ 		const char *name,
+ 		const struct archive_read_filter_bidder_vtable *vtable);
+ 
++void *__archive_read_get_private(struct archive_read *, const char *);
++int __archive_read_set_private(struct archive_read *, const char *,
++		void *, void (*)(void *));
++void __archive_read_clear_private(struct archive_read *, const char *);
++
++
+ const void *__archive_read_ahead(struct archive_read *, size_t, ssize_t *);
+ const void *__archive_read_filter_ahead(struct archive_read_filter *,
+     size_t, ssize_t *);
+@@ -262,4 +270,36 @@ struct archive_read_extract *__archive_r
+  */
+ void __archive_read_reset_passphrase(struct archive_read *a);
+ const char * __archive_read_next_passphrase(struct archive_read *a);
++
++struct rpm_file_info {
++	char		*pathname;
++	char		*uname;
++	char		*gname;
++	uint64_t	size;
++	uint16_t	mode;
++	int32_t		dev;
++	int16_t		rdev;
++	uint32_t	mtime;
++	uint32_t	ino;
++};
++
++struct rpm_inode_info {
++	uint64_t				n_files;
++	struct rpm_file_info	**files;
++	uint64_t				n_processed;
++};
++
++struct rpm_context {
++	/*
++	 * Testing revealed that the maximum ino matches the maximum fx.
++	 * When hardlinks are involved subsequent numbers appear to be simply skipped.
++	 */
++	union {
++		uint64_t	n_files;
++		uint64_t	n_inodes;
++	};
++	struct rpm_file_info	*files;		/* Indexed by fx. */
++	struct rpm_inode_info	*inodes;	/* Indexed by ino (-1). */
++};
++
+ #endif
+diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c
+--- libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~	2025-11-17 23:04:25.000000000 +0100
++++ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c	2026-01-16 15:15:47.334891965 +0100
+@@ -37,6 +37,56 @@
+ #include "archive_private.h"
+ #include "archive_read_private.h"
+ 
++#define RPM_LEAD_MAGIC "\xed\xab\xee\xdb"
++#define RPM_HEADER_MAGIC "\x8e\xad\xe8\x01\x00\x00\x00\x00"
++
++#define RPM_LEAD_SIZE		96
++#define RPM_MIN_HEAD_SIZE	16
++
++#define RPMTAG_FILESIZES		1028
++#define RPMTAG_FILEMODES		1030
++#define RPMTAG_FILERDEVS		1033
++#define RPMTAG_FILEMTIMES		1034
++#define RPMTAG_FILEUSERNAMES	1039
++#define RPMTAG_FILEGROUPNAMES	1040
++#define RPMTAG_FILEDEVICES      1095
++#define RPMTAG_FILEINODES		1096
++
++#define RPMTAG_DIRINDEXES	1116
++#define RPMTAG_BASENAMES	1117
++#define RPMTAG_DIRNAMES		1118
++
++#define RPMTAG_LONGFILESIZES	5008
++
++struct rpm_header_parse {
++	uint64_t	 n_files;
++
++	const char	 *basenames;
++	uint64_t	 n_basenames;
++
++	const char	 *dirnames;
++	uint64_t	 n_dirnames;
++
++	const char	 *usernames;
++	uint64_t	 n_usernames;
++
++	const char	 *groupnames;
++	uint64_t	 n_groupnames;
++
++	union {
++		const int64_t	*filesizes64;
++		const int32_t   *filesizes32;
++	};
++	uint8_t	is_filesizes64;
++
++	const int32_t	*dirindexes;
++	const int16_t	*filemodes;
++	const int32_t   *filedevices;
++	const int16_t   *filerdevs;
++	const int32_t	*filemtimes;
++	const int32_t	*fileinodes;
++};
++
+ struct rpm {
+ 	int64_t		 total_in;
+ 	uint64_t	 hpos;
+@@ -52,19 +102,27 @@ struct rpm {
+ 		ST_ARCHIVE	/* Reading 'Archive' section. */
+ 	}		 state;
+ 	int		 first_header;
++
++    unsigned char	*hbuf;
++    uint64_t		hbuf_size;
++    uint8_t			have_main_header;
+ };
+-#define RPM_LEAD_SIZE		96	/* Size of 'Lead' section. */
+-#define RPM_MIN_HEAD_SIZE	16	/* Minimum size of 'Head'. */
+ 
+ static int	rpm_bidder_bid(struct archive_read_filter_bidder *,
+ 		    struct archive_read_filter *);
+ static int	rpm_bidder_init(struct archive_read_filter *);
+ 
+-static ssize_t	rpm_filter_read(struct archive_read_filter *,
++static int64_t	rpm_filter_read(struct archive_read_filter *,
+ 		    const void **);
+ static int	rpm_filter_close(struct archive_read_filter *);
+ 
+-static inline size_t rpm_limit_bytes(uint64_t, size_t);
++static inline uint64_t	rpm_limit_bytes(uint64_t, uint64_t);
++static const char *	rpm_strlist_at(const char *, uint64_t, uint64_t);
++
++static void	rpm_context_free(void *);
++
++static int	rpm_parse_main_header(struct archive_read *,
++			const unsigned char *, uint64_t);
+ 
+ #if ARCHIVE_VERSION_NUMBER < 4000000
+ /* Deprecated; remove in libarchive 4.0 */
+@@ -95,7 +153,7 @@ rpm_bidder_bid(struct archive_read_filte
+     struct archive_read_filter *filter)
+ {
+ 	const unsigned char *b;
+-	ssize_t avail;
++	int64_t avail;
+ 	int bits_checked;
+ 
+ 	(void)self; /* UNUSED */
+@@ -106,9 +164,9 @@ rpm_bidder_bid(struct archive_read_filte
+ 
+ 	bits_checked = 0;
+ 	/*
+-	 * Verify Header Magic Bytes : 0XED 0XAB 0XEE 0XDB
++	 * Verify Header Magic Bytes
+ 	 */
+-	if (memcmp(b, "\xED\xAB\xEE\xDB", 4) != 0)
++	if (memcmp(b, RPM_LEAD_MAGIC, sizeof(RPM_LEAD_MAGIC) - 1) != 0)
+ 		return (0);
+ 	bits_checked += 32;
+ 	/*
+@@ -158,19 +216,35 @@ rpm_bidder_init(struct archive_read_filt
+ 	return (ARCHIVE_OK);
+ }
+ 
+-static inline size_t
+-rpm_limit_bytes(uint64_t bytes, size_t max)
++static inline uint64_t
++rpm_limit_bytes(const uint64_t bytes, const uint64_t max)
++{
++	return (bytes > max ? max : bytes);
++}
++
++/* Sequence of 'n' NUL-terminated strings. */
++static const char *
++rpm_strlist_at(const char *list, const uint64_t n, const uint64_t i)
+ {
+-	return (bytes > max ? max : (size_t)bytes);
++	uint64_t k;
++	const char *p = list;
++
++	for (k = 0; k < n && k < i; k++) {
++		while (*p != '\0')
++			p++;
++		p++;
++	}
++
++	return p;
+ }
+ 
+-static ssize_t
++static int64_t
+ rpm_filter_read(struct archive_read_filter *self, const void **buff)
+ {
+ 	struct rpm *rpm;
+ 	const unsigned char *b;
+-	ssize_t avail_in, total, used;
+-	size_t n;
++	int64_t avail_in, total, used;
++	uint64_t n;
+ 	uint64_t section;
+ 	uint64_t bytes;
+ 
+@@ -196,7 +270,7 @@ rpm_filter_read(struct archive_read_filt
+ 			if (rpm->total_in + avail_in < RPM_LEAD_SIZE)
+ 				used += avail_in;
+ 			else {
+-				n = (size_t)(RPM_LEAD_SIZE - rpm->total_in);
++				n = (uint64_t)(RPM_LEAD_SIZE - rpm->total_in);
+ 				used += n;
+ 				b += n;
+ 				rpm->state = ST_HEADER;
+@@ -208,16 +282,13 @@ rpm_filter_read(struct archive_read_filt
+ 		case ST_HEADER:
+ 			n = rpm_limit_bytes(RPM_MIN_HEAD_SIZE - rpm->hpos,
+ 			    avail_in - used);
+-			memcpy(rpm->header+rpm->hpos, b, n);
++			memcpy(rpm->header + rpm->hpos, b, n);
+ 			b += n;
+ 			used += n;
+ 			rpm->hpos += n;
+ 
+ 			if (rpm->hpos == RPM_MIN_HEAD_SIZE) {
+-				if (rpm->header[0] != 0x8e ||
+-				    rpm->header[1] != 0xad ||
+-				    rpm->header[2] != 0xe8 ||
+-				    rpm->header[3] != 0x01) {
++				if (memcmp(rpm->header, RPM_HEADER_MAGIC, sizeof(RPM_HEADER_MAGIC) - 1) != 0) {
+ 					if (rpm->first_header) {
+ 						archive_set_error(
+ 						    &self->archive->archive,
+@@ -230,26 +301,65 @@ rpm_filter_read(struct archive_read_filt
+ 					total = RPM_MIN_HEAD_SIZE;
+ 					break;
+ 				}
+-				/* Calculate 'Header' length. */
+-				section = archive_be32dec(rpm->header+8);
+-				bytes = archive_be32dec(rpm->header+12);
+-				rpm->hlen = rpm->hpos + section * 16 + bytes;
++
++				/* Calculate full header length. */
++				section = archive_be32dec(rpm->header + 8);
++				bytes = archive_be32dec(rpm->header + 12);
++				rpm->hlen = rpm->hpos + section * RPM_MIN_HEAD_SIZE + bytes;
+ 				rpm->state = ST_HEADER_DATA;
+-				rpm->first_header = 0;
+ 			}
+ 			break;
+-		case ST_HEADER_DATA:
+-			n = rpm_limit_bytes(rpm->hlen - rpm->hpos,
+-			    avail_in - used);
++		case ST_HEADER_DATA: {
++			uint64_t need = rpm->hlen - rpm->hpos;
++			n = rpm_limit_bytes(need, avail_in - used);
++
++			/* Allocate header buffer on first data byte. */
++			if (rpm->hbuf == NULL) {
++				rpm->hbuf_size = rpm->hlen;
++				rpm->hbuf = malloc(rpm->hbuf_size);
++				if (rpm->hbuf == NULL)
++					return (ARCHIVE_FATAL);
++
++				/* Copy already-read 16-byte header record. */
++				memcpy(rpm->hbuf, rpm->header, RPM_MIN_HEAD_SIZE);
++			}
++
++			/* Append remaining header bytes at current hpos. */
++			memcpy(rpm->hbuf + rpm->hpos, b, n);
++
+ 			b += n;
+ 			used += n;
+ 			rpm->hpos += n;
+-			if (rpm->hpos == rpm->hlen)
++
++			if (rpm->hpos == rpm->hlen) {
+ 				rpm->state = ST_PADDING;
++
++				/* Only parse the MAIN header (not the signature). */
++				if (!rpm->first_header && !rpm->have_main_header) {
++					const int r = rpm_parse_main_header(self->archive, rpm->hbuf, rpm->hbuf_size);
++					if (r != ARCHIVE_OK)
++						return (r);
++
++					rpm->have_main_header = 1;
++				}
++			}
++
+ 			break;
++		}
+ 		case ST_PADDING:
+ 			while (used < avail_in) {
+ 				if (*b != 0) {
++					/* Finished one header; if that was the signature,
++					 * the next header is the main header. */
++					if (rpm->first_header && !rpm->have_main_header)
++						rpm->first_header = 0;
++
++					if (rpm->hbuf) {
++						free(rpm->hbuf);
++						rpm->hbuf = NULL;
++						rpm->hbuf_size = 0;
++					}
++
+ 					/* Read next header. */
+ 					rpm->state = ST_HEADER;
+ 					rpm->hpos = 0;
+@@ -292,3 +402,186 @@ rpm_filter_close(struct archive_read_fil
+ 	return (ARCHIVE_OK);
+ }
+ 
++static void
++rpm_context_free(void *p)
++{
++	struct rpm_context *ctx = p;
++	uint64_t i;
++
++	if (ctx == NULL)
++		return;
++
++	if (ctx->inodes != NULL) {
++		for (i = 0; i < ctx->n_inodes; i++) {
++			free(ctx->inodes[i].files);
++		}
++
++		free(ctx->inodes);
++	}
++
++	if (ctx->files != NULL) {
++		for (i = 0; i < ctx->n_files; i++) {
++			free(ctx->files[i].pathname);
++			free(ctx->files[i].uname);
++			free(ctx->files[i].gname);
++		}
++
++		free(ctx->files);
++	}
++
++	free(ctx);
++}
++
++static int
++rpm_parse_main_header(struct archive_read *a,
++    const unsigned char *hbuf, const uint64_t hlen)
++{
++	struct rpm_header_parse hp;
++	struct rpm_file_info *files;
++	struct rpm_inode_info *inodes;
++	const unsigned char *index_base, *store_base;
++	uint32_t n_index, data_size;
++	uint64_t i;
++
++	memset(&hp, 0, sizeof(hp));
++
++	if (hlen < RPM_MIN_HEAD_SIZE)
++		return ARCHIVE_FATAL;
++
++	n_index = archive_be32dec(hbuf + 8);
++	data_size = archive_be32dec(hbuf + 12);
++
++	if (RPM_MIN_HEAD_SIZE + (uint64_t)n_index * RPM_MIN_HEAD_SIZE + data_size > hlen)
++		return ARCHIVE_FATAL;
++
++	index_base = hbuf + RPM_MIN_HEAD_SIZE;
++	store_base = index_base + (uint64_t)n_index * RPM_MIN_HEAD_SIZE;
++
++	for (i = 0; i < n_index; i++) {
++		uint32_t tag, /*type,*/ cnt;
++		int32_t off;
++		const unsigned char *p;
++		const unsigned char *ip = index_base + i * RPM_MIN_HEAD_SIZE;
++
++		tag = archive_be32dec(ip + 0);
++		/*type = archive_be32dec(ip + 4);*/
++		off = archive_be32dec(ip + 8);
++		cnt = archive_be32dec(ip + 12);
++
++		if (off < 0 || (uint32_t)off >= data_size)
++			continue;
++
++		p = store_base + off;
++
++		switch (tag) {
++		case RPMTAG_BASENAMES:
++			hp.basenames = (const char *)p;
++			hp.n_basenames = cnt;
++			break;
++		case RPMTAG_DIRNAMES:
++			hp.dirnames = (const char *)p;
++			hp.n_dirnames = cnt;
++			break;
++		case RPMTAG_FILEUSERNAMES:
++			hp.usernames = (const char *)p;
++			hp.n_usernames = cnt;
++			break;
++		case RPMTAG_FILEGROUPNAMES:
++			hp.groupnames = (const char *)p;
++			hp.n_groupnames = cnt;
++			break;
++		case RPMTAG_LONGFILESIZES:
++			hp.filesizes64 = (const int64_t *)p;;
++			hp.n_files = cnt;
++			hp.is_filesizes64 = 1;
++			break;
++		case RPMTAG_FILESIZES:
++			/* This tag should never appear when Longfilesizes is present,
++			 * but checking doesn't hurt. */
++			if (!hp.is_filesizes64) {
++				hp.filesizes32 = (const int32_t *)p;
++				hp.n_files = cnt;
++			}
++			break;
++		case RPMTAG_DIRINDEXES:
++			hp.dirindexes = (const int32_t *)p;
++			break;
++		case RPMTAG_FILEINODES:
++			hp.fileinodes = (const int32_t *)p;
++			break;
++		case RPMTAG_FILEMODES:
++			hp.filemodes = (const int16_t *)p;
++			break;
++		case RPMTAG_FILEDEVICES:
++			hp.filedevices = (const int32_t *)p;
++			break;
++		case RPMTAG_FILERDEVS:
++			hp.filerdevs = (const int16_t *)p;
++			break;
++		case RPMTAG_FILEMTIMES:
++			hp.filemtimes = (const int32_t *)p;
++			break;
++		}
++	}
++
++	files = calloc(hp.n_files, sizeof(*files));
++	if (files == NULL)
++		return ARCHIVE_FATAL;
++
++	for (i = 0; i < hp.n_files; i++) {
++		struct archive_string as;
++		struct rpm_file_info *file = &files[i];
++		const int32_t dindex = archive_be32dec(&hp.dirindexes[i]);
++		const char *dname = rpm_strlist_at(hp.dirnames, hp.n_dirnames, dindex);
++		const char *bname = rpm_strlist_at(hp.basenames, hp.n_basenames, i);
++		const char *uname = rpm_strlist_at(hp.usernames, hp.n_usernames, i);
++		const char *gname = rpm_strlist_at(hp.groupnames, hp.n_groupnames, i);
++
++		archive_string_init(&as);
++		archive_strappend_char(&as, '.');
++		archive_strcat(&as, dname);
++		archive_strcat(&as, bname);
++		file->pathname = strdup(as.s);
++		archive_string_free(&as);
++		file->uname = strdup(uname);
++		file->gname = strdup(gname);
++
++		if (hp.is_filesizes64)
++			file->size = hp.filesizes64 ?
++				archive_be64dec(&hp.filesizes64[i]) : 0;
++		else
++			file->size = hp.filesizes32 ?
++				archive_be32dec(&hp.filesizes32[i]) : 0;
++		file->mode = hp.filemodes ?
++			archive_be16dec(&hp.filemodes[i]) : 0;
++		file->dev = hp.filedevices ?
++			archive_be32dec(&hp.filedevices[i]) : 0;
++		file->rdev = hp.filerdevs ?
++			archive_be16dec(&hp.filerdevs[i]) : 0;
++		file->mtime = hp.filemtimes ?
++			archive_be32dec(&hp.filemtimes[i]) : 0;
++		file->ino = hp.fileinodes ?
++			archive_be32dec(&hp.fileinodes[i]) : 0;
++	}
++
++	inodes = calloc(hp.n_files, sizeof(*inodes));
++
++	for (i = 0; i < hp.n_files; i++) {
++		struct rpm_file_info *file = &files[i];
++		struct rpm_inode_info *inode = &inodes[file->ino - 1];
++
++		inode->files = realloc(inode->files,
++							 ++inode->n_files * sizeof(struct rpm_file_info *));
++		inode->files[inode->n_files - 1] = file;
++	}
++
++	struct rpm_context *ctx = calloc(1, sizeof(*ctx));
++
++	ctx->n_files = hp.n_files;
++	ctx->files = files;
++	ctx->inodes = inodes;
++
++	__archive_read_set_private(a, "rpm", ctx, rpm_context_free);
++
++    return ARCHIVE_OK;
++}
+diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c
+--- libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~	2025-11-17 23:04:25.000000000 +0100
++++ libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c	2026-01-16 15:17:50.594063701 +0100
+@@ -122,6 +122,16 @@
+ #define	newc_header_size 110
+ 
+ /*
++ * Stripped CPIO header, used by RPM.
++ * Only contains the magic and the file index.
++ */
++#define	str_magic_offset 0
++#define	str_magic_size 6
++#define	str_fx_offset 6
++#define	str_fx_size 8
++#define	str_header_size 16
++
++/*
+  * An afio large ASCII header, which they named itself.
+  * afio utility uses this header, if a file size is larger than 2G bytes
+  * or inode/uid/gid is bigger than 65535(0xFFFF) or mtime is bigger than
+@@ -211,6 +221,8 @@ static int	header_newc(struct archive_re
+ 		    struct archive_entry *, size_t *, size_t *);
+ static int	header_odc(struct archive_read *, struct cpio *,
+ 		    struct archive_entry *, size_t *, size_t *);
++static int	header_str(struct archive_read *, struct cpio *,
++		    struct archive_entry *, size_t *, size_t *);
+ static int	header_afiol(struct archive_read *, struct cpio *,
+ 		    struct archive_entry *, size_t *, size_t *);
+ static int	is_octal(const char *, size_t);
+@@ -218,6 +230,8 @@ static int	is_hex(const char *, size_t);
+ static int64_t	le4(const unsigned char *);
+ static int	record_hardlink(struct archive_read *a,
+ 		    struct cpio *cpio, struct archive_entry *entry);
++static int	set_entry_pathname(struct archive_read *, struct archive_entry *,
++		    size_t, size_t);
+ 
+ int
+ archive_read_support_format_cpio(struct archive *_a)
+@@ -303,6 +317,10 @@ archive_read_format_cpio_bid(struct arch
+ 		 * XXX TODO:  More verification; Could check that only hex
+ 		 * digits appear in appropriate header locations. XXX
+ 		 */
++	} else if (memcmp(p, "07070X", 6) == 0) {
++		/* Stripped cpio archive (RPM) */
++		cpio->read_header = header_str;
++		bid += 48;
+ 	} else if (p[0] * 256 + p[1] == 070707) {
+ 		/* big-endian binary cpio archives */
+ 		cpio->read_header = header_bin_be;
+@@ -364,8 +382,8 @@ archive_read_format_cpio_read_header(str
+ 	struct cpio *cpio;
+ 	const void *h, *hl;
+ 	struct archive_string_conv *sconv;
+-	size_t namelength;
+-	size_t name_pad;
++	size_t namelength = 0;
++	size_t name_pad = 0;
+ 	int r;
+ 
+ 	cpio = (struct cpio *)(a->format->data);
+@@ -379,30 +397,15 @@ archive_read_format_cpio_read_header(str
+ 		}
+ 		sconv = cpio->sconv_default;
+ 	}
+-	
++
+ 	r = (cpio->read_header(a, cpio, entry, &namelength, &name_pad));
+ 
+ 	if (r < ARCHIVE_WARN)
+ 		return (r);
+ 
+-	/* Read name from buffer. */
+-	h = __archive_read_ahead(a, namelength + name_pad, NULL);
+-	if (h == NULL)
+-	    return (ARCHIVE_FATAL);
+-	if (archive_entry_copy_pathname_l(entry,
+-	    (const char *)h, namelength, sconv) != 0) {
+-		if (errno == ENOMEM) {
+-			archive_set_error(&a->archive, ENOMEM,
+-			    "Can't allocate memory for Pathname");
+-			return (ARCHIVE_FATAL);
+-		}
+-		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+-		    "Pathname can't be converted from %s to current locale.",
+-		    archive_string_conversion_charset_name(sconv));
+-		r = ARCHIVE_WARN;
+-	}
+ 	cpio->entry_offset = 0;
+ 
++	h = __archive_read_ahead(a, namelength + name_pad, NULL);
+ 	__archive_read_consume(a, namelength + name_pad);
+ 
+ 	/* If this is a symlink, read the link contents. */
+@@ -529,6 +532,19 @@ is_hex(const char *p, size_t len)
+ 	return (1);
+ }
+ 
++static void
++fill_rpm_file_entry(struct archive_entry *entry, const struct rpm_file_info *file)
++{
++	archive_entry_set_pathname_utf8(entry, file->pathname);
++	archive_entry_set_uname_utf8(entry, file->uname);
++	archive_entry_set_gname_utf8(entry, file->gname);
++	archive_entry_set_dev(entry, file->dev);
++	archive_entry_set_ino(entry, file->ino);
++	archive_entry_set_mode(entry, file->mode);
++	archive_entry_set_rdev(entry, file->rdev);
++	archive_entry_set_mtime(entry, file->mtime, 0);
++}
++
+ static int
+ find_newc_header(struct archive_read *a)
+ {
+@@ -593,6 +609,8 @@ static int
+ header_newc(struct archive_read *a, struct cpio *cpio,
+     struct archive_entry *entry, size_t *namelength, size_t *name_pad)
+ {
++	struct rpm_context *ctx;
++	int64_t ino;
+ 	const void *h;
+ 	const char *header;
+ 	int r;
+@@ -611,30 +629,16 @@ header_newc(struct archive_read *a, stru
+ 
+ 	if (memcmp(header + newc_magic_offset, "070701", 6) == 0) {
+ 		a->archive.archive_format = ARCHIVE_FORMAT_CPIO_SVR4_NOCRC;
+-		a->archive.archive_format_name = "ASCII cpio (SVR4 with no CRC)";
+ 	} else if (memcmp(header + newc_magic_offset, "070702", 6) == 0) {
+ 		a->archive.archive_format = ARCHIVE_FORMAT_CPIO_SVR4_CRC;
+-		a->archive.archive_format_name = "ASCII cpio (SVR4 with CRC)";
+ 	} else {
+ 		/* TODO: Abort here? */
+ 	}
+ 
+-	archive_entry_set_devmajor(entry,
+-		(dev_t)atol16(header + newc_devmajor_offset, newc_devmajor_size));
+-	archive_entry_set_devminor(entry, 
+-		(dev_t)atol16(header + newc_devminor_offset, newc_devminor_size));
+-	archive_entry_set_ino(entry, atol16(header + newc_ino_offset, newc_ino_size));
+-	archive_entry_set_mode(entry, 
+-		(mode_t)atol16(header + newc_mode_offset, newc_mode_size));
+-	archive_entry_set_uid(entry, atol16(header + newc_uid_offset, newc_uid_size));
+-	archive_entry_set_gid(entry, atol16(header + newc_gid_offset, newc_gid_size));
+-	archive_entry_set_nlink(entry,
+-		(unsigned int)atol16(header + newc_nlink_offset, newc_nlink_size));
+-	archive_entry_set_rdevmajor(entry,
+-		(dev_t)atol16(header + newc_rdevmajor_offset, newc_rdevmajor_size));
+-	archive_entry_set_rdevminor(entry,
+-		(dev_t)atol16(header + newc_rdevminor_offset, newc_rdevminor_size));
+-	archive_entry_set_mtime(entry, atol16(header + newc_mtime_offset, newc_mtime_size), 0);
++	ino = atol16(header + newc_ino_offset, newc_ino_size);
++	if (ino == 0)
++		return (ARCHIVE_EOF);
++
+ 	*namelength = (size_t)atol16(header + newc_namesize_offset, newc_namesize_size);
+ 	/* Pad name to 2 more than a multiple of 4. */
+ 	*name_pad = (2 - *namelength) & 3;
+@@ -652,11 +656,86 @@ header_newc(struct archive_read *a, stru
+ 	 * size.
+ 	 */
+ 	cpio->entry_bytes_remaining =
+-	    atol16(header + newc_filesize_offset, newc_filesize_size);
+-	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
++		atol16(header + newc_filesize_offset, newc_filesize_size);
+ 	/* Pad file contents to a multiple of 4. */
+ 	cpio->entry_padding = 3 & -cpio->entry_bytes_remaining;
+-	__archive_read_consume(a, newc_header_size);
++	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
++
++	ctx = __archive_read_get_private(a, "rpm");
++	if (ctx != NULL) {
++		struct rpm_inode_info *inode = &ctx->inodes[ino - 1];
++		struct rpm_file_info *file = NULL;
++		uint64_t i;
++
++		switch (a->archive.archive_format) {
++		case ARCHIVE_FORMAT_CPIO_SVR4_NOCRC:
++			a->archive.archive_format_name = "RPM cpio (SVR4 with no CRC)";
++			break;
++		case ARCHIVE_FORMAT_CPIO_SVR4_CRC:
++			a->archive.archive_format_name = "RPM cpio (SVR4 with CRC)";
++			break;
++		}
++
++		if ((uint64_t)ino > ctx->n_inodes) {
++			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
++				"ino out of range");
++			return (ARCHIVE_FATAL);
++		}
++
++		__archive_read_consume(a, newc_header_size);
++
++		r = set_entry_pathname(a, entry, *namelength, *name_pad);
++		if (r < ARCHIVE_WARN)
++			return (r);
++
++		for (i = 0; i < inode->n_files; i++) {
++			if (strcmp(inode->files[i]->pathname,
++					archive_entry_pathname_utf8(entry)) == 0) {
++				file = inode->files[i];
++				break;
++			}
++		}
++
++		if (file == NULL) {
++			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
++				"rpm header has no such file");
++			return (ARCHIVE_FATAL);
++		}
++
++		fill_rpm_file_entry(entry, file);
++		archive_entry_set_nlink(entry, inode->n_files);
++	} else {
++		switch (a->archive.archive_format) {
++		case ARCHIVE_FORMAT_CPIO_SVR4_NOCRC:
++			a->archive.archive_format_name = "ASCII cpio (SVR4 with no CRC)";
++			break;
++		case ARCHIVE_FORMAT_CPIO_SVR4_CRC:
++			a->archive.archive_format_name = "ASCII cpio (SVR4 with CRC)";
++			break;
++		}
++
++		archive_entry_set_devmajor(entry,
++			(dev_t)atol16(header + newc_devmajor_offset, newc_devmajor_size));
++		archive_entry_set_devminor(entry,
++			(dev_t)atol16(header + newc_devminor_offset, newc_devminor_size));
++		archive_entry_set_ino(entry, atol16(header + newc_ino_offset, newc_ino_size));
++		archive_entry_set_mode(entry,
++			(mode_t)atol16(header + newc_mode_offset, newc_mode_size));
++		archive_entry_set_uid(entry, atol16(header + newc_uid_offset, newc_uid_size));
++		archive_entry_set_gid(entry, atol16(header + newc_gid_offset, newc_gid_size));
++		archive_entry_set_nlink(entry,
++			(unsigned int)atol16(header + newc_nlink_offset, newc_nlink_size));
++		archive_entry_set_rdevmajor(entry,
++			(dev_t)atol16(header + newc_rdevmajor_offset, newc_rdevmajor_size));
++		archive_entry_set_rdevminor(entry,
++			(dev_t)atol16(header + newc_rdevminor_offset, newc_rdevminor_size));
++		archive_entry_set_mtime(entry, atol16(header + newc_mtime_offset, newc_mtime_size), 0);
++
++		__archive_read_consume(a, newc_header_size);
++
++		r = set_entry_pathname(a, entry, *namelength, *name_pad);
++	}
++
+ 	return (r);
+ }
+ 
+@@ -821,9 +900,122 @@ header_odc(struct archive_read *a, struc
+ 	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
+ 	cpio->entry_padding = 0;
+ 	__archive_read_consume(a, odc_header_size);
++
++	r = set_entry_pathname(a, entry, *namelength, *name_pad);
++	if (r < ARCHIVE_WARN)
++		return (r);
++
+ 	return (r);
+ }
+ 
++static int
++find_str_header(struct archive_read *a)
++{
++	ssize_t avail;
++
++	for (;;) {
++		const unsigned char *p, *q, *end;
++
++		p = __archive_read_ahead(a, str_magic_size, &avail);
++		if (p == NULL) {
++			return (avail < 0 ? ARCHIVE_FATAL : ARCHIVE_EOF);
++		}
++
++		if (avail < (ssize_t)str_magic_size) {
++			/* Not enough bytes left for a full header. */
++			return ARCHIVE_EOF;
++		}
++
++		end = p + avail;
++
++		for (q = p; q + str_magic_size <= end; q++) {
++			if (memcmp(q, "07070X", str_magic_size) == 0) {
++				/* Consume up to the start of the header. */
++				__archive_read_consume(a, q - p);
++				return ARCHIVE_OK;
++			}
++		}
++
++		/* No match in this block: consume all but the last (str_magic_size - 1)
++		   bytes so we don't miss a header straddling the boundary. */
++		if (avail > (ssize_t)(str_magic_size - 1)) {
++			__archive_read_consume(a, avail - (str_magic_size - 1));
++		} else {
++			__archive_read_consume(a, avail);
++		}
++	}
++}
++
++static int
++header_str(struct archive_read *a, struct cpio *cpio,
++    struct archive_entry *entry, size_t *namelength, size_t *name_pad)
++{
++	struct rpm_context *ctx;
++	struct rpm_file_info *file;
++	struct rpm_inode_info *inode;
++	uint32_t fx;
++	const void *h;
++	const char *header;
++	int r;
++
++	(void)namelength;
++	(void)name_pad;
++
++	ctx = __archive_read_get_private(a, "rpm");
++	if (ctx == NULL) {
++		archive_set_error(&a->archive, ARCHIVE_ERRNO_MISC, "no rpm context");
++		return (ARCHIVE_FATAL);
++	}
++
++	/* Find the start of the next header. */
++	r = find_str_header(a);
++	if (r != ARCHIVE_OK)
++		return (r);
++
++	/* Read fixed-size portion of header. */
++	h = __archive_read_ahead(a, str_header_size, NULL);
++	if (h == NULL)
++	    return (ARCHIVE_FATAL);
++
++	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_STR;
++	a->archive.archive_format_name = "RPM cpio (stripped)";
++
++	/* Parse out hex fields. */
++	header = (const char *)h;
++
++	fx = strtoul(header + str_fx_offset, NULL, 16);
++	if (fx >= ctx->n_files) {
++		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT, "fx out of range");
++		return (ARCHIVE_FATAL);
++	}
++
++	file = &ctx->files[fx];
++
++	if (file->ino < 1 || file->ino > ctx->n_inodes) {
++		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT, "ino out of range");
++		return (ARCHIVE_FATAL);
++	}
++
++	inode = &ctx->inodes[file->ino - 1];
++
++	fill_rpm_file_entry(entry, file);
++	archive_entry_set_nlink(entry, inode->n_files);
++
++	/* Eat stripped header */
++	__archive_read_consume(a, str_header_size);
++
++	/* Only the last hardlink group's entry carries the payload. */
++	if (++inode->n_processed == inode->n_files)
++		cpio->entry_bytes_remaining = file->size;
++	else
++		cpio->entry_bytes_remaining = 0;
++
++	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
++	cpio->entry_padding = 0;
++
++	return ARCHIVE_OK;
++}
++
+ /*
+  * NOTE: if a filename suffix is ".z", it is the file gziped by afio.
+  * it would be nice that we can show uncompressed file size and we can
+@@ -839,6 +1031,7 @@ header_afiol(struct archive_read *a, str
+ 	uint64_t u;
+ 	const void *h;
+ 	const char *header;
++	int r;
+ 
+ 	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_AFIO_LARGE;
+ 	a->archive.archive_format_name = "afio large ASCII";
+@@ -880,6 +1073,11 @@ header_afiol(struct archive_read *a, str
+ 	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
+ 	cpio->entry_padding = 0;
+ 	__archive_read_consume(a, afiol_header_size);
++
++	r = set_entry_pathname(a, entry, *namelength, *name_pad);
++	if (r < ARCHIVE_WARN)
++		return (r);
++
+ 	return (ARCHIVE_OK);
+ }
+ 
+@@ -890,6 +1088,7 @@ header_bin_le(struct archive_read *a, st
+ {
+ 	const void *h;
+ 	const unsigned char *header;
++	int r;
+ 
+ 	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_BIN_LE;
+ 	a->archive.archive_format_name = "cpio (little-endian binary)";
+@@ -926,6 +1125,11 @@ header_bin_le(struct archive_read *a, st
+ 	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
+ 	cpio->entry_padding = cpio->entry_bytes_remaining & 1; /* Pad to even. */
+ 	__archive_read_consume(a, bin_header_size);
++
++	r = set_entry_pathname(a, entry, *namelength, *name_pad);
++	if (r < ARCHIVE_WARN)
++		return (r);
++
+ 	return (ARCHIVE_OK);
+ }
+ 
+@@ -935,6 +1139,7 @@ header_bin_be(struct archive_read *a, st
+ {
+ 	const void *h;
+ 	const unsigned char *header;
++	int r;
+ 
+ 	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_BIN_BE;
+ 	a->archive.archive_format_name = "cpio (big-endian binary)";
+@@ -971,6 +1176,11 @@ header_bin_be(struct archive_read *a, st
+ 	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
+ 	cpio->entry_padding = cpio->entry_bytes_remaining & 1; /* Pad to even. */
+ 	    __archive_read_consume(a, bin_header_size);
++
++	r = set_entry_pathname(a, entry, *namelength, *name_pad);
++	if (r < ARCHIVE_WARN)
++		return (r);
++
+ 	return (ARCHIVE_OK);
+ }
+ 
+@@ -1119,3 +1329,44 @@ record_hardlink(struct archive_read *a,
+ 
+ 	return (ARCHIVE_OK);
+ }
++
++static int
++set_entry_pathname(struct archive_read *a, struct archive_entry *entry,
++    size_t namelength, size_t name_pad)
++{
++	struct cpio *cpio = a->format->data;
++	struct archive_string_conv *sconv;
++	int r = ARCHIVE_OK;
++
++	sconv = cpio->opt_sconv;
++	if (sconv == NULL) {
++		if (!cpio->init_default_conversion) {
++			cpio->sconv_default =
++			    archive_string_default_conversion_for_read(
++			      &(a->archive));
++			cpio->init_default_conversion = 1;
++		}
++		sconv = cpio->sconv_default;
++	}
++
++	/* Read name from buffer. */
++	if (namelength > 0) {
++		const void *h = __archive_read_ahead(a, namelength + name_pad, NULL);
++		if (h == NULL)
++			return (ARCHIVE_FATAL);
++		if (archive_entry_copy_pathname_l(entry, (const char *)h, namelength, sconv)
++			!= 0) {
++			if (errno == ENOMEM) {
++				archive_set_error(&a->archive, ENOMEM,
++					"Can't allocate memory for Pathname");
++				return (ARCHIVE_FATAL);
++			}
++			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
++				"Pathname can't be converted from %s to current locale.",
++				archive_string_conversion_charset_name(sconv));
++			r = ARCHIVE_WARN;
++		}
++	}
++
++	return (r);
++}
