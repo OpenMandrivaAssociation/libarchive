@@ -1,7 +1,7 @@
-diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.omv~ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c
---- libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.omv~	2026-01-16 15:23:07.994871801 +0100
-+++ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c	2026-01-16 15:25:21.772602277 +0100
-@@ -112,7 +112,7 @@ static int	rpm_bidder_bid(struct archive
+diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.3~ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c
+--- libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.3~	2026-01-19 01:41:08.035676656 +0100
++++ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c	2026-01-19 01:42:03.693974639 +0100
+@@ -120,7 +120,7 @@ static int	rpm_bidder_bid(struct archive
  		    struct archive_read_filter *);
  static int	rpm_bidder_init(struct archive_read_filter *);
  
@@ -10,7 +10,7 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.omv~ liba
  		    const void **);
  static int	rpm_filter_close(struct archive_read_filter *);
  
-@@ -153,7 +153,7 @@ rpm_bidder_bid(struct archive_read_filte
+@@ -171,7 +171,7 @@ rpm_bidder_bid(struct archive_read_filte
      struct archive_read_filter *filter)
  {
  	const unsigned char *b;
@@ -19,8 +19,8 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.omv~ liba
  	int bits_checked;
  
  	(void)self; /* UNUSED */
-@@ -238,12 +238,13 @@ rpm_strlist_at(const char *list, const u
- 	return p;
+@@ -234,12 +234,13 @@ rpm_bidder_init(struct archive_read_filt
+ 	return (ARCHIVE_OK);
  }
  
 -static int64_t

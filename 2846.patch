@@ -1,6 +1,6 @@
 diff -up libarchive-3.8.4/libarchive/archive.h.2~ libarchive-3.8.4/libarchive/archive.h
 --- libarchive-3.8.4/libarchive/archive.h.2~	2025-12-01 13:42:06.000000000 +0100
-+++ libarchive-3.8.4/libarchive/archive.h	2026-01-16 15:15:47.335202650 +0100
++++ libarchive-3.8.4/libarchive/archive.h	2026-01-19 01:37:48.752713786 +0100
 @@ -359,6 +359,7 @@ typedef const char *archive_passphrase_c
  #define	ARCHIVE_FORMAT_CPIO_SVR4_CRC		(ARCHIVE_FORMAT_CPIO | 5)
  #define	ARCHIVE_FORMAT_CPIO_AFIO_LARGE		(ARCHIVE_FORMAT_CPIO | 6)
@@ -11,7 +11,7 @@ diff -up libarchive-3.8.4/libarchive/archive.h.2~ libarchive-3.8.4/libarchive/ar
  #define	ARCHIVE_FORMAT_SHAR_DUMP		(ARCHIVE_FORMAT_SHAR | 2)
 diff -up libarchive-3.8.4/libarchive/archive_entry_link_resolver.c.2~ libarchive-3.8.4/libarchive/archive_entry_link_resolver.c
 --- libarchive-3.8.4/libarchive/archive_entry_link_resolver.c.2~	2025-11-17 23:04:25.000000000 +0100
-+++ libarchive-3.8.4/libarchive/archive_entry_link_resolver.c	2026-01-16 15:15:47.335278051 +0100
++++ libarchive-3.8.4/libarchive/archive_entry_link_resolver.c	2026-01-19 01:37:48.752946019 +0100
 @@ -133,6 +133,7 @@ archive_entry_linkresolver_set_strategy(
  		switch (fmt) {
  		case ARCHIVE_FORMAT_CPIO_SVR4_NOCRC:
@@ -22,7 +22,7 @@ diff -up libarchive-3.8.4/libarchive/archive_entry_link_resolver.c.2~ libarchive
  		default:
 diff -up libarchive-3.8.4/libarchive/archive_private.h.2~ libarchive-3.8.4/libarchive/archive_private.h
 --- libarchive-3.8.4/libarchive/archive_private.h.2~	2025-11-17 23:04:25.000000000 +0100
-+++ libarchive-3.8.4/libarchive/archive_private.h	2026-01-16 15:15:47.334515610 +0100
++++ libarchive-3.8.4/libarchive/archive_private.h	2026-01-19 01:37:48.750486723 +0100
 @@ -93,6 +93,13 @@ struct archive_vtable {
  	const char * (*archive_filter_name)(struct archive *, int);
  };
@@ -39,7 +39,7 @@ diff -up libarchive-3.8.4/libarchive/archive_private.h.2~ libarchive-3.8.4/libar
  struct archive {
 diff -up libarchive-3.8.4/libarchive/archive_read.c.2~ libarchive-3.8.4/libarchive/archive_read.c
 --- libarchive-3.8.4/libarchive/archive_read.c.2~	2025-11-17 23:04:25.000000000 +0100
-+++ libarchive-3.8.4/libarchive/archive_read.c	2026-01-16 15:15:47.334623992 +0100
++++ libarchive-3.8.4/libarchive/archive_read.c	2026-01-19 01:37:48.750766626 +0100
 @@ -1065,6 +1065,7 @@ _archive_read_free(struct archive *_a)
  {
  	struct archive_read *a = (struct archive_read *)_a;
@@ -140,7 +140,7 @@ diff -up libarchive-3.8.4/libarchive/archive_read.c.2~ libarchive-3.8.4/libarchi
   * system used by archive readers.  This system allows simple
 diff -up libarchive-3.8.4/libarchive/archive_read_private.h.2~ libarchive-3.8.4/libarchive/archive_read_private.h
 --- libarchive-3.8.4/libarchive/archive_read_private.h.2~	2025-11-17 23:04:25.000000000 +0100
-+++ libarchive-3.8.4/libarchive/archive_read_private.h	2026-01-16 15:15:47.335437663 +0100
++++ libarchive-3.8.4/libarchive/archive_read_private.h	2026-01-19 01:37:48.753444814 +0100
 @@ -160,6 +160,8 @@ struct archive_read {
  
  	struct archive_entry	*entry;
@@ -202,13 +202,16 @@ diff -up libarchive-3.8.4/libarchive/archive_read_private.h.2~ libarchive-3.8.4/
  #endif
 diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c
 --- libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~	2025-11-17 23:04:25.000000000 +0100
-+++ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c	2026-01-16 15:15:47.334891965 +0100
-@@ -37,6 +37,56 @@
++++ libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c	2026-01-19 01:37:48.751596685 +0100
+@@ -37,6 +37,64 @@
  #include "archive_private.h"
  #include "archive_read_private.h"
  
-+#define RPM_LEAD_MAGIC "\xed\xab\xee\xdb"
-+#define RPM_HEADER_MAGIC "\x8e\xad\xe8\x01\x00\x00\x00\x00"
++#define MAX_NFILES	100000
++#define STR_SIZE_LIMIT	(1024 * 1024) /* 1 MiB */
++
++#define RPM_LEAD_MAGIC		"\xed\xab\xee\xdb"
++#define RPM_HEADER_MAGIC	"\x8e\xad\xe8\x01\x00\x00\x00\x00"
 +
 +#define RPM_LEAD_SIZE		96
 +#define RPM_MIN_HEAD_SIZE	16
@@ -245,22 +248,27 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
 +
 +	union {
 +		const int64_t	*filesizes64;
-+		const int32_t   *filesizes32;
++		const int32_t	*filesizes32;
 +	};
 +	uint8_t	is_filesizes64;
 +
 +	const int32_t	*dirindexes;
 +	const int16_t	*filemodes;
-+	const int32_t   *filedevices;
-+	const int16_t   *filerdevs;
++	const int32_t	*filedevices;
++	const int16_t	*filerdevs;
 +	const int32_t	*filemtimes;
 +	const int32_t	*fileinodes;
++};
++
++struct rpm_inode_map {
++	uint32_t	raw;
++	uint32_t	compact;
 +};
 +
  struct rpm {
  	int64_t		 total_in;
  	uint64_t	 hpos;
-@@ -52,19 +102,27 @@ struct rpm {
+@@ -52,19 +110,37 @@ struct rpm {
  		ST_ARCHIVE	/* Reading 'Archive' section. */
  	}		 state;
  	int		 first_header;
@@ -282,17 +290,27 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
  static int	rpm_filter_close(struct archive_read_filter *);
  
 -static inline size_t rpm_limit_bytes(uint64_t, size_t);
-+static inline uint64_t	rpm_limit_bytes(uint64_t, uint64_t);
-+static const char *	rpm_strlist_at(const char *, uint64_t, uint64_t);
-+
 +static void	rpm_context_free(void *);
 +
 +static int	rpm_parse_main_header(struct archive_read *,
 +			const unsigned char *, uint64_t);
++
++static uint16_t	rpm_be16_at(const void *buf_start,
++	const void *buf_end, const uint64_t off);
++static uint32_t	rpm_be32_at(const void *buf_start,
++	const void *buf_end, const uint64_t off);
++static uint64_t	rpm_be64_at(const void *buf_start,
++	const void *buf_end, const uint64_t off);
++
++static inline uint64_t	rpm_limit_bytes(uint64_t, uint64_t);
++static char	*rpm_safe_strndup(struct archive_read *, const char *);
++static void	rpm_strcat(struct archive_string *, const void *, const void *);
++static const char	*rpm_strlist_at(const char *, const void *,
++	uint64_t, uint64_t);
  
  #if ARCHIVE_VERSION_NUMBER < 4000000
  /* Deprecated; remove in libarchive 4.0 */
-@@ -95,7 +153,7 @@ rpm_bidder_bid(struct archive_read_filte
+@@ -95,7 +171,7 @@ rpm_bidder_bid(struct archive_read_filte
      struct archive_read_filter *filter)
  {
  	const unsigned char *b;
@@ -301,7 +319,7 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
  	int bits_checked;
  
  	(void)self; /* UNUSED */
-@@ -106,9 +164,9 @@ rpm_bidder_bid(struct archive_read_filte
+@@ -106,9 +182,9 @@ rpm_bidder_bid(struct archive_read_filte
  
  	bits_checked = 0;
  	/*
@@ -313,35 +331,25 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
  		return (0);
  	bits_checked += 32;
  	/*
-@@ -158,19 +216,35 @@ rpm_bidder_init(struct archive_read_filt
+@@ -147,7 +223,7 @@ rpm_bidder_init(struct archive_read_filt
+ 	rpm = calloc(1, sizeof(*rpm));
+ 	if (rpm == NULL) {
+ 		archive_set_error(&self->archive->archive, ENOMEM,
+-		    "Can't allocate data for rpm");
++		    "can't allocate data for rpm");
+ 		return (ARCHIVE_FATAL);
+ 	}
+ 
+@@ -158,19 +234,13 @@ rpm_bidder_init(struct archive_read_filt
  	return (ARCHIVE_OK);
  }
  
 -static inline size_t
 -rpm_limit_bytes(uint64_t bytes, size_t max)
-+static inline uint64_t
-+rpm_limit_bytes(const uint64_t bytes, const uint64_t max)
-+{
-+	return (bytes > max ? max : bytes);
-+}
-+
-+/* Sequence of 'n' NUL-terminated strings. */
-+static const char *
-+rpm_strlist_at(const char *list, const uint64_t n, const uint64_t i)
- {
+-{
 -	return (bytes > max ? max : (size_t)bytes);
-+	uint64_t k;
-+	const char *p = list;
-+
-+	for (k = 0; k < n && k < i; k++) {
-+		while (*p != '\0')
-+			p++;
-+		p++;
-+	}
-+
-+	return p;
- }
- 
+-}
+-
 -static ssize_t
 +static int64_t
  rpm_filter_read(struct archive_read_filter *self, const void **buff)
@@ -355,7 +363,7 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
  	uint64_t section;
  	uint64_t bytes;
  
-@@ -196,7 +270,7 @@ rpm_filter_read(struct archive_read_filt
+@@ -196,7 +266,7 @@ rpm_filter_read(struct archive_read_filt
  			if (rpm->total_in + avail_in < RPM_LEAD_SIZE)
  				used += avail_in;
  			else {
@@ -364,7 +372,7 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
  				used += n;
  				b += n;
  				rpm->state = ST_HEADER;
-@@ -208,16 +282,13 @@ rpm_filter_read(struct archive_read_filt
+@@ -208,16 +278,13 @@ rpm_filter_read(struct archive_read_filt
  		case ST_HEADER:
  			n = rpm_limit_bytes(RPM_MIN_HEAD_SIZE - rpm->hpos,
  			    avail_in - used);
@@ -383,7 +391,7 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
  					if (rpm->first_header) {
  						archive_set_error(
  						    &self->archive->archive,
-@@ -230,26 +301,65 @@ rpm_filter_read(struct archive_read_filt
+@@ -230,26 +297,58 @@ rpm_filter_read(struct archive_read_filt
  					total = RPM_MIN_HEAD_SIZE;
  					break;
  				}
@@ -407,16 +415,13 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
 +			uint64_t need = rpm->hlen - rpm->hpos;
 +			n = rpm_limit_bytes(need, avail_in - used);
 +
-+			/* Allocate header buffer on first data byte. */
-+			if (rpm->hbuf == NULL) {
-+				rpm->hbuf_size = rpm->hlen;
-+				rpm->hbuf = malloc(rpm->hbuf_size);
-+				if (rpm->hbuf == NULL)
-+					return (ARCHIVE_FATAL);
++			rpm->hbuf_size = rpm->hlen;
++			rpm->hbuf = realloc(rpm->hbuf, rpm->hbuf_size);
++			if (rpm->hbuf == NULL)
++				return ARCHIVE_FATAL;
 +
-+				/* Copy already-read 16-byte header record. */
-+				memcpy(rpm->hbuf, rpm->header, RPM_MIN_HEAD_SIZE);
-+			}
++			/* Copy already-read 16-byte header record. */
++			memcpy(rpm->hbuf, rpm->header, RPM_MIN_HEAD_SIZE);
 +
 +			/* Append remaining header bytes at current hpos. */
 +			memcpy(rpm->hbuf + rpm->hpos, b, n);
@@ -432,8 +437,10 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
 +				/* Only parse the MAIN header (not the signature). */
 +				if (!rpm->first_header && !rpm->have_main_header) {
 +					const int r = rpm_parse_main_header(self->archive, rpm->hbuf, rpm->hbuf_size);
-+					if (r != ARCHIVE_OK)
-+						return (r);
++					if (r != ARCHIVE_OK) {
++						total = r;
++						goto cleanup;
++					}
 +
 +					rpm->have_main_header = 1;
 +				}
@@ -449,16 +456,23 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
 +					if (rpm->first_header && !rpm->have_main_header)
 +						rpm->first_header = 0;
 +
-+					if (rpm->hbuf) {
-+						free(rpm->hbuf);
-+						rpm->hbuf = NULL;
-+						rpm->hbuf_size = 0;
-+					}
-+
  					/* Read next header. */
  					rpm->state = ST_HEADER;
  					rpm->hpos = 0;
-@@ -292,3 +402,186 @@ rpm_filter_close(struct archive_read_fil
+@@ -278,6 +377,12 @@ rpm_filter_read(struct archive_read_filt
+ 		rpm->total_in += used;
+ 		__archive_read_filter_consume(self->upstream, used);
+ 	}
++
++cleanup:
++	free(rpm->hbuf);
++	rpm->hbuf = NULL;
++	rpm->hbuf_size = 0;
++
+ 	return (total);
+ }
+ 
+@@ -292,3 +397,331 @@ rpm_filter_close(struct archive_read_fil
  	return (ARCHIVE_OK);
  }
  
@@ -494,14 +508,13 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
 +
 +static int
 +rpm_parse_main_header(struct archive_read *a,
-+    const unsigned char *hbuf, const uint64_t hlen)
++    const unsigned char *hbuf, uint64_t hlen)
 +{
++	struct rpm_context *ctx;
 +	struct rpm_header_parse hp;
-+	struct rpm_file_info *files;
-+	struct rpm_inode_info *inodes;
-+	const unsigned char *index_base, *store_base;
-+	uint32_t n_index, data_size;
-+	uint64_t i;
++	struct rpm_inode_map *im;
++	const unsigned char *hbuf_end = hbuf + hlen;
++	uint64_t i, n_index, count;
 +
 +	memset(&hp, 0, sizeof(hp));
 +
@@ -509,29 +522,29 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
 +		return ARCHIVE_FATAL;
 +
 +	n_index = archive_be32dec(hbuf + 8);
-+	data_size = archive_be32dec(hbuf + 12);
++	count = archive_be32dec(hbuf + 12);
 +
-+	if (RPM_MIN_HEAD_SIZE + (uint64_t)n_index * RPM_MIN_HEAD_SIZE + data_size > hlen)
++	hbuf += RPM_MIN_HEAD_SIZE;
++	hlen -= RPM_MIN_HEAD_SIZE;
++
++	if ((uint64_t)n_index * RPM_MIN_HEAD_SIZE + count > hlen)
 +		return ARCHIVE_FATAL;
-+
-+	index_base = hbuf + RPM_MIN_HEAD_SIZE;
-+	store_base = index_base + (uint64_t)n_index * RPM_MIN_HEAD_SIZE;
 +
 +	for (i = 0; i < n_index; i++) {
 +		uint32_t tag, /*type,*/ cnt;
 +		int32_t off;
 +		const unsigned char *p;
-+		const unsigned char *ip = index_base + i * RPM_MIN_HEAD_SIZE;
++		const unsigned char *ip = hbuf + i * RPM_MIN_HEAD_SIZE;
 +
-+		tag = archive_be32dec(ip + 0);
-+		/*type = archive_be32dec(ip + 4);*/
-+		off = archive_be32dec(ip + 8);
-+		cnt = archive_be32dec(ip + 12);
++		tag = rpm_be32_at(ip, hbuf_end, 0);
++		/*type = rpm_be32_at(ip, hbuf_end, 1);*/
++		off = rpm_be32_at(ip, hbuf_end, 2);
++		cnt = rpm_be32_at(ip, hbuf_end, 3);
 +
-+		if (off < 0 || (uint32_t)off >= data_size)
++		if (off < 0 || (uint32_t)off >= count)
 +			continue;
 +
-+		p = store_base + off;
++		p = hbuf + (uint64_t)n_index * RPM_MIN_HEAD_SIZE + off;
 +
 +		switch (tag) {
 +		case RPMTAG_BASENAMES:
@@ -584,70 +597,216 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_filter_rpm.c.2~ libarc
 +		}
 +	}
 +
-+	files = calloc(hp.n_files, sizeof(*files));
-+	if (files == NULL)
-+		return ARCHIVE_FATAL;
++	if (hp.n_files >= MAX_NFILES) {
++		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
++				"n_files out of range");
++		return (ARCHIVE_FATAL);
++	}
++
++	ctx = calloc(1, sizeof(*ctx));
++	if (ctx == NULL)
++		return (ARCHIVE_FATAL);
++
++	ctx->files = calloc(hp.n_files, sizeof(*ctx->files));
++	if (ctx->files == NULL)
++		goto fail;
++
++	ctx->n_files = hp.n_files;
 +
 +	for (i = 0; i < hp.n_files; i++) {
++		struct rpm_file_info *file = &ctx->files[i];
 +		struct archive_string as;
-+		struct rpm_file_info *file = &files[i];
-+		const int32_t dindex = archive_be32dec(&hp.dirindexes[i]);
-+		const char *dname = rpm_strlist_at(hp.dirnames, hp.n_dirnames, dindex);
-+		const char *bname = rpm_strlist_at(hp.basenames, hp.n_basenames, i);
-+		const char *uname = rpm_strlist_at(hp.usernames, hp.n_usernames, i);
-+		const char *gname = rpm_strlist_at(hp.groupnames, hp.n_groupnames, i);
++		const char *dname, *bname, *uname, *gname;
++
++		if (hp.dirindexes != NULL) {
++			const uint32_t diri = rpm_be32_at(hp.dirindexes, hbuf_end, i);
++
++			if (diri >= hp.n_dirnames) {
++				archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
++					"dirindex out of range");
++				goto fail;
++			}
++
++			dname = rpm_strlist_at(hp.dirnames, hbuf_end, diri, hp.n_dirnames);
++		} else
++			dname = NULL;
++
++		bname = rpm_strlist_at(hp.basenames, hbuf_end, i, hp.n_basenames);
++		uname = rpm_strlist_at(hp.usernames, hbuf_end, i, hp.n_usernames);
++		gname = rpm_strlist_at(hp.groupnames, hbuf_end, i, hp.n_groupnames);
 +
 +		archive_string_init(&as);
 +		archive_strappend_char(&as, '.');
-+		archive_strcat(&as, dname);
-+		archive_strcat(&as, bname);
++		rpm_strcat(&as, dname, hbuf_end);
++		rpm_strcat(&as, bname, hbuf_end);
 +		file->pathname = strdup(as.s);
 +		archive_string_free(&as);
-+		file->uname = strdup(uname);
-+		file->gname = strdup(gname);
++
++		file->uname = rpm_safe_strndup(a, uname ? uname : "");
++		file->gname = rpm_safe_strndup(a, gname ? gname : "");
 +
 +		if (hp.is_filesizes64)
-+			file->size = hp.filesizes64 ?
-+				archive_be64dec(&hp.filesizes64[i]) : 0;
++			file->size = rpm_be64_at(hp.filesizes64, hbuf_end, i);
 +		else
-+			file->size = hp.filesizes32 ?
-+				archive_be32dec(&hp.filesizes32[i]) : 0;
-+		file->mode = hp.filemodes ?
-+			archive_be16dec(&hp.filemodes[i]) : 0;
-+		file->dev = hp.filedevices ?
-+			archive_be32dec(&hp.filedevices[i]) : 0;
-+		file->rdev = hp.filerdevs ?
-+			archive_be16dec(&hp.filerdevs[i]) : 0;
-+		file->mtime = hp.filemtimes ?
-+			archive_be32dec(&hp.filemtimes[i]) : 0;
-+		file->ino = hp.fileinodes ?
-+			archive_be32dec(&hp.fileinodes[i]) : 0;
++			file->size = rpm_be32_at(hp.filesizes32, hbuf_end, i);
++		file->mode = rpm_be16_at(hp.filemodes, hbuf_end, i);
++		file->dev = rpm_be32_at(hp.filedevices, hbuf_end, i);
++		file->rdev = rpm_be16_at(hp.filerdevs, hbuf_end, i);
++		file->mtime = rpm_be32_at(hp.filemtimes, hbuf_end, i);
++		file->ino = rpm_be32_at(hp.fileinodes, hbuf_end, i);
 +	}
 +
-+	inodes = calloc(hp.n_files, sizeof(*inodes));
++	ctx->inodes = calloc(hp.n_files, sizeof(*ctx->inodes));
++	if (ctx->inodes == NULL)
++		goto fail;
 +
++	im = calloc(hp.n_files, sizeof(*im));
++	if (im == NULL)
++		goto fail;
++
++	count = 0;
++
++	/* Normalize inode numbers for indexing. */
 +	for (i = 0; i < hp.n_files; i++) {
-+		struct rpm_file_info *file = &files[i];
-+		struct rpm_inode_info *inode = &inodes[file->ino - 1];
++		struct rpm_file_info *file = &ctx->files[i];
++		struct rpm_inode_info *inode;
++		const uint32_t raw = file->ino;
++		uint32_t j;
++
++		for (j = 0; j < count; j++) {
++			if (im[j].raw == raw)
++				break;
++		}
++
++		if (j == count) {
++			im[j].raw = raw;
++			im[j].compact = count;
++			count++;
++		}
++
++		inode = &ctx->inodes[im[j].compact];
 +
 +		inode->files = realloc(inode->files,
-+							 ++inode->n_files * sizeof(struct rpm_file_info *));
++			++inode->n_files * sizeof(struct rpm_file_info *));
 +		inode->files[inode->n_files - 1] = file;
++
++		file->ino = im[j].compact;
 +	}
 +
-+	struct rpm_context *ctx = calloc(1, sizeof(*ctx));
-+
-+	ctx->n_files = hp.n_files;
-+	ctx->files = files;
-+	ctx->inodes = inodes;
++	free(im);
 +
 +	__archive_read_set_private(a, "rpm", ctx, rpm_context_free);
 +
-+    return ARCHIVE_OK;
++	return (ARCHIVE_OK);
++fail:
++	rpm_context_free(ctx);
++	return (ARCHIVE_FATAL);
++}
++
++static uint16_t
++rpm_be16_at(const void *buf_start, const void *buf_end,
++	uint64_t off)
++{
++	off *= sizeof(uint16_t);
++
++	if (!buf_start || (buf_end <= buf_start) ||
++		(uint64_t)(buf_end - buf_start) < (off + sizeof(uint16_t)))
++		return 0;
++
++	return archive_be16dec(buf_start + off);
++}
++
++static uint32_t
++rpm_be32_at(const void *buf_start, const void *buf_end,
++	uint64_t off)
++{
++	off *= sizeof(uint32_t);
++
++	if (!buf_start || (buf_end <= buf_start) ||
++		(uint64_t)(buf_end - buf_start) < (off + sizeof(uint32_t)))
++		return 0;
++
++	return archive_be32dec(buf_start + off);
++}
++
++static uint64_t
++rpm_be64_at(const void *buf_start, const void *buf_end,
++	uint64_t off)
++{
++	off *= sizeof(uint64_t);
++
++	if (!buf_start || (buf_end <= buf_start) ||
++		(uint64_t)(buf_end - buf_start) < (off + sizeof(uint64_t)))
++		return 0;
++
++	return archive_be64dec(buf_start + off);
++}
++
++static inline uint64_t
++rpm_limit_bytes(const uint64_t bytes, const uint64_t max)
++{
++	return (bytes > max ? max : bytes);
++}
++
++static char *
++rpm_safe_strndup(struct archive_read *a, const char *s)
++{
++	uint64_t len;
++
++	if (s == NULL)
++		return NULL;
++
++	len = strnlen(s, STR_SIZE_LIMIT);
++	if (len == STR_SIZE_LIMIT) {
++		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
++						  "malformed rpm header string");
++		return NULL;
++	}
++
++	return strndup(s, len);
++}
++
++static void
++rpm_strcat(struct archive_string *a, const void *s, const void *buf_end)
++{
++	if (!s || s >= buf_end)
++		return;
++
++	archive_strncat(a, s, rpm_limit_bytes(buf_end - s, STR_SIZE_LIMIT));
++}
++
++static const char *
++rpm_strlist_at(const char *p, const void *end,
++			   uint64_t i, uint64_t n)
++{
++	uint64_t k;
++
++	if (p == NULL || i >= n || (const char *)end < p)
++		return NULL;
++
++	for (k = 0; k < n; k++) {
++		uint64_t max_len = rpm_limit_bytes((const char *)end - p,
++										   STR_SIZE_LIMIT);
++
++		/* Unterminated or absurdly long string */
++		uint64_t len = strnlen(p, max_len);
++		if (len == max_len)
++			return NULL;
++
++		if (k == i)
++			return p;   /* <-- return BEFORE skipping */
++
++		p += len + 1;   /* move to next string */
++
++		if (p >= (const char *)end)
++			return NULL;
++	}
++
++	return NULL;
 +}
 diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c
 --- libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~	2025-11-17 23:04:25.000000000 +0100
-+++ libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c	2026-01-16 15:17:50.594063701 +0100
++++ libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c	2026-01-19 01:40:50.064368535 +0100
 @@ -122,6 +122,16 @@
  #define	newc_header_size 110
  
@@ -665,21 +824,42 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
   * An afio large ASCII header, which they named itself.
   * afio utility uses this header, if a file size is larger than 2G bytes
   * or inode/uid/gid is bigger than 65535(0xFFFF) or mtime is bigger than
-@@ -211,6 +221,8 @@ static int	header_newc(struct archive_re
- 		    struct archive_entry *, size_t *, size_t *);
+@@ -174,7 +184,7 @@ struct links_entry {
+ struct cpio {
+ 	int			  magic;
+ 	int			(*read_header)(struct archive_read *, struct cpio *,
+-				     struct archive_entry *, size_t *, size_t *);
++				     struct archive_entry *);
+ 	struct links_entry	 *links_head;
+ 	int64_t			  entry_bytes_remaining;
+ 	int64_t			  entry_bytes_unconsumed;
+@@ -204,20 +214,24 @@ static int64_t	be4(const unsigned char *
+ static int	find_odc_header(struct archive_read *);
+ static int	find_newc_header(struct archive_read *);
+ static int	header_bin_be(struct archive_read *, struct cpio *,
+-		    struct archive_entry *, size_t *, size_t *);
++		    struct archive_entry *);
+ static int	header_bin_le(struct archive_read *, struct cpio *,
+-		    struct archive_entry *, size_t *, size_t *);
++		    struct archive_entry *);
+ static int	header_newc(struct archive_read *, struct cpio *,
+-		    struct archive_entry *, size_t *, size_t *);
++		    struct archive_entry *);
  static int	header_odc(struct archive_read *, struct cpio *,
- 		    struct archive_entry *, size_t *, size_t *);
+-		    struct archive_entry *, size_t *, size_t *);
++		    struct archive_entry *);
 +static int	header_str(struct archive_read *, struct cpio *,
-+		    struct archive_entry *, size_t *, size_t *);
++		    struct archive_entry *);
  static int	header_afiol(struct archive_read *, struct cpio *,
- 		    struct archive_entry *, size_t *, size_t *);
+-		    struct archive_entry *, size_t *, size_t *);
++		    struct archive_entry *);
  static int	is_octal(const char *, size_t);
-@@ -218,6 +230,8 @@ static int	is_hex(const char *, size_t);
+ static int	is_hex(const char *, size_t);
  static int64_t	le4(const unsigned char *);
  static int	record_hardlink(struct archive_read *a,
  		    struct cpio *cpio, struct archive_entry *entry);
 +static int	set_entry_pathname(struct archive_read *, struct archive_entry *,
-+		    size_t, size_t);
++		    uint64_t, uint64_t);
  
  int
  archive_read_support_format_cpio(struct archive *_a)
@@ -694,26 +874,29 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
  	} else if (p[0] * 256 + p[1] == 070707) {
  		/* big-endian binary cpio archives */
  		cpio->read_header = header_bin_be;
-@@ -364,8 +382,8 @@ archive_read_format_cpio_read_header(str
+@@ -362,10 +380,8 @@ archive_read_format_cpio_read_header(str
+     struct archive_entry *entry)
+ {
  	struct cpio *cpio;
- 	const void *h, *hl;
+-	const void *h, *hl;
++	const void *hl;
  	struct archive_string_conv *sconv;
 -	size_t namelength;
 -	size_t name_pad;
-+	size_t namelength = 0;
-+	size_t name_pad = 0;
  	int r;
  
  	cpio = (struct cpio *)(a->format->data);
-@@ -379,30 +397,15 @@ archive_read_format_cpio_read_header(str
+@@ -379,32 +395,14 @@ archive_read_format_cpio_read_header(str
  		}
  		sconv = cpio->sconv_default;
  	}
 -	
-+
- 	r = (cpio->read_header(a, cpio, entry, &namelength, &name_pad));
+-	r = (cpio->read_header(a, cpio, entry, &namelength, &name_pad));
  
- 	if (r < ARCHIVE_WARN)
+-	if (r < ARCHIVE_WARN)
++	r = (cpio->read_header(a, cpio, entry));
++
++	if (r < ARCHIVE_WARN || r == ARCHIVE_EOF)
  		return (r);
  
 -	/* Read name from buffer. */
@@ -734,11 +917,27 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 -	}
  	cpio->entry_offset = 0;
  
-+	h = __archive_read_ahead(a, namelength + name_pad, NULL);
- 	__archive_read_consume(a, namelength + name_pad);
- 
+-	__archive_read_consume(a, namelength + name_pad);
+-
  	/* If this is a symlink, read the link contents. */
-@@ -529,6 +532,19 @@ is_hex(const char *p, size_t len)
+ 	if (archive_entry_filetype(entry) == AE_IFLNK) {
+ 		if (cpio->entry_bytes_remaining > 1024 * 1024) {
+@@ -439,14 +437,6 @@ archive_read_format_cpio_read_header(str
+ 	 * and parse it as a Solaris-style ACL, then read the next
+ 	 * header.  XXX */
+ 
+-	/* Compare name to "TRAILER!!!" to test for end-of-archive. */
+-	if (namelength == 11 && strncmp((const char *)h, "TRAILER!!!",
+-	    10) == 0) {
+-		/* TODO: Store file location of start of block. */
+-		archive_clear_error(&a->archive);
+-		return (ARCHIVE_EOF);
+-	}
+-
+ 	/* Detect and record hardlinks to previously-extracted entries. */
+ 	if (record_hardlink(a, cpio, entry) != ARCHIVE_OK) {
+ 		return (ARCHIVE_FATAL);
+@@ -529,6 +519,19 @@ is_hex(const char *p, size_t len)
  	return (1);
  }
  
@@ -758,16 +957,23 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
  static int
  find_newc_header(struct archive_read *a)
  {
-@@ -593,6 +609,8 @@ static int
+@@ -591,11 +594,13 @@ find_newc_header(struct archive_read *a)
+ 
+ static int
  header_newc(struct archive_read *a, struct cpio *cpio,
-     struct archive_entry *entry, size_t *namelength, size_t *name_pad)
+-    struct archive_entry *entry, size_t *namelength, size_t *name_pad)
++	struct archive_entry *entry)
  {
 +	struct rpm_context *ctx;
-+	int64_t ino;
  	const void *h;
  	const char *header;
- 	int r;
-@@ -611,30 +629,16 @@ header_newc(struct archive_read *a, stru
+-	int r;
++	uint64_t name_len, name_pad;
++	int r, r2;
+ 
+ 	r = find_newc_header(a);
+ 	if (r < ARCHIVE_WARN)
+@@ -611,36 +616,18 @@ header_newc(struct archive_read *a, stru
  
  	if (memcmp(header + newc_magic_offset, "070701", 6) == 0) {
  		a->archive.archive_format = ARCHIVE_FORMAT_CPIO_SVR4_NOCRC;
@@ -795,14 +1001,19 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 -	archive_entry_set_rdevminor(entry,
 -		(dev_t)atol16(header + newc_rdevminor_offset, newc_rdevminor_size));
 -	archive_entry_set_mtime(entry, atol16(header + newc_mtime_offset, newc_mtime_size), 0);
-+	ino = atol16(header + newc_ino_offset, newc_ino_size);
-+	if (ino == 0)
-+		return (ARCHIVE_EOF);
-+
- 	*namelength = (size_t)atol16(header + newc_namesize_offset, newc_namesize_size);
+-	*namelength = (size_t)atol16(header + newc_namesize_offset, newc_namesize_size);
++	name_len = (size_t)atol16(header + newc_namesize_offset, newc_namesize_size);
  	/* Pad name to 2 more than a multiple of 4. */
- 	*name_pad = (2 - *namelength) & 3;
-@@ -652,11 +656,86 @@ header_newc(struct archive_read *a, stru
+-	*name_pad = (2 - *namelength) & 3;
++	name_pad = (2 - name_len) & 3;
+ 
+ 	/* Make sure that the padded name length fits into size_t. */
+-	if (*name_pad > SIZE_MAX - *namelength) {
++	if (name_pad > UINT64_MAX - name_pad) {
+ 		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
+ 		    "cpio archive has invalid namelength");
+ 		return (ARCHIVE_FATAL);
+@@ -652,12 +639,79 @@ header_newc(struct archive_read *a, stru
  	 * size.
  	 */
  	cpio->entry_bytes_remaining =
@@ -812,11 +1023,11 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
  	/* Pad file contents to a multiple of 4. */
  	cpio->entry_padding = 3 & -cpio->entry_bytes_remaining;
 -	__archive_read_consume(a, newc_header_size);
+-	return (r);
 +	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
 +
 +	ctx = __archive_read_get_private(a, "rpm");
 +	if (ctx != NULL) {
-+		struct rpm_inode_info *inode = &ctx->inodes[ino - 1];
 +		struct rpm_file_info *file = NULL;
 +		uint64_t i;
 +
@@ -829,24 +1040,20 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 +			break;
 +		}
 +
-+		if ((uint64_t)ino > ctx->n_inodes) {
-+			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
-+				"ino out of range");
-+			return (ARCHIVE_FATAL);
-+		}
-+
 +		__archive_read_consume(a, newc_header_size);
 +
-+		r = set_entry_pathname(a, entry, *namelength, *name_pad);
-+		if (r < ARCHIVE_WARN)
-+			return (r);
++		r2 = set_entry_pathname(a, entry, name_len, name_pad);
++		if (r2 != ARCHIVE_OK)
++			return (r2);
 +
-+		for (i = 0; i < inode->n_files; i++) {
-+			if (strcmp(inode->files[i]->pathname,
-+					archive_entry_pathname_utf8(entry)) == 0) {
-+				file = inode->files[i];
++		for (i = 0; i < ctx->n_files; i++) {
++			file = &ctx->files[i];
++			if (strcmp(file->pathname, archive_entry_pathname(entry)) == 0) {
++				fill_rpm_file_entry(entry, file);
 +				break;
 +			}
++
++			file = NULL;
 +		}
 +
 +		if (file == NULL) {
@@ -854,9 +1061,6 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 +				"rpm header has no such file");
 +			return (ARCHIVE_FATAL);
 +		}
-+
-+		fill_rpm_file_entry(entry, file);
-+		archive_entry_set_nlink(entry, inode->n_files);
 +	} else {
 +		switch (a->archive.archive_format) {
 +		case ARCHIVE_FORMAT_CPIO_SVR4_NOCRC:
@@ -886,24 +1090,63 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 +
 +		__archive_read_consume(a, newc_header_size);
 +
-+		r = set_entry_pathname(a, entry, *namelength, *name_pad);
++		r2 = set_entry_pathname(a, entry, name_len, name_pad);
 +	}
 +
- 	return (r);
++	return (r2 == ARCHIVE_OK) ? (r) : (r2);
  }
  
-@@ -821,9 +900,122 @@ header_odc(struct archive_read *a, struc
+ /*
+@@ -766,11 +820,12 @@ find_odc_header(struct archive_read *a)
+ 
+ static int
+ header_odc(struct archive_read *a, struct cpio *cpio,
+-    struct archive_entry *entry, size_t *namelength, size_t *name_pad)
++    struct archive_entry *entry)
+ {
+ 	const void *h;
+-	int r;
+ 	const char *header;
++	uint64_t name_len;
++	int r, r2;
+ 
+ 	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_POSIX;
+ 	a->archive.archive_format_name = "POSIX octet-oriented cpio";
+@@ -781,11 +836,8 @@ header_odc(struct archive_read *a, struc
+ 		return (r);
+ 
+ 	if (a->archive.archive_format == ARCHIVE_FORMAT_CPIO_AFIO_LARGE) {
+-		int r2 = (header_afiol(a, cpio, entry, namelength, name_pad));
+-		if (r2 == ARCHIVE_OK)
+-			return (r);
+-		else
+-			return (r2);
++		r2 = (header_afiol(a, cpio, entry));
++		return r2 < r ? r2 : r;
+ 	}
+ 
+ 	/* Read fixed-size portion of header. */
+@@ -808,8 +860,7 @@ header_odc(struct archive_read *a, struc
+ 	archive_entry_set_rdev(entry,
+ 		(dev_t)atol8(header + odc_rdev_offset, odc_rdev_size));
+ 	archive_entry_set_mtime(entry, atol8(header + odc_mtime_offset, odc_mtime_size), 0);
+-	*namelength = (size_t)atol8(header + odc_namesize_offset, odc_namesize_size);
+-	*name_pad = 0; /* No padding of filename. */
++	name_len = (size_t)atol8(header + odc_namesize_offset, odc_namesize_size);
+ 
+ 	/*
+ 	 * Note: entry_bytes_remaining is at least 64 bits and
+@@ -821,7 +872,109 @@ header_odc(struct archive_read *a, struc
  	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
  	cpio->entry_padding = 0;
  	__archive_read_consume(a, odc_header_size);
+-	return (r);
 +
-+	r = set_entry_pathname(a, entry, *namelength, *name_pad);
-+	if (r < ARCHIVE_WARN)
-+		return (r);
++	r2 = set_entry_pathname(a, entry, name_len, 0);
 +
- 	return (r);
- }
- 
++	return (r2 == ARCHIVE_OK) ? (r) : (r2);
++}
++
 +static int
 +find_str_header(struct archive_read *a)
 +{
@@ -944,18 +1187,15 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 +
 +static int
 +header_str(struct archive_read *a, struct cpio *cpio,
-+    struct archive_entry *entry, size_t *namelength, size_t *name_pad)
++    struct archive_entry *entry)
 +{
 +	struct rpm_context *ctx;
 +	struct rpm_file_info *file;
 +	struct rpm_inode_info *inode;
-+	uint32_t fx;
 +	const void *h;
 +	const char *header;
++	uint32_t fx;
 +	int r;
-+
-+	(void)namelength;
-+	(void)name_pad;
 +
 +	ctx = __archive_read_get_private(a, "rpm");
 +	if (ctx == NULL) {
@@ -986,13 +1226,7 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 +	}
 +
 +	file = &ctx->files[fx];
-+
-+	if (file->ino < 1 || file->ino > ctx->n_inodes) {
-+		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT, "ino out of range");
-+		return (ARCHIVE_FATAL);
-+	}
-+
-+	inode = &ctx->inodes[file->ino - 1];
++	inode = &ctx->inodes[file->ino];
 +
 +	fill_rpm_file_entry(entry, file);
 +	archive_entry_set_nlink(entry, inode->n_files);
@@ -1010,79 +1244,110 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 +	cpio->entry_padding = 0;
 +
 +	return ARCHIVE_OK;
-+}
-+
+ }
+ 
  /*
-  * NOTE: if a filename suffix is ".z", it is the file gziped by afio.
-  * it would be nice that we can show uncompressed file size and we can
-@@ -839,6 +1031,7 @@ header_afiol(struct archive_read *a, str
- 	uint64_t u;
+@@ -833,12 +986,12 @@ header_odc(struct archive_read *a, struc
+  */
+ static int
+ header_afiol(struct archive_read *a, struct cpio *cpio,
+-    struct archive_entry *entry, size_t *namelength, size_t *name_pad)
++    struct archive_entry *entry)
+ {
+-	int64_t t;
+-	uint64_t u;
  	const void *h;
  	const char *header;
-+	int r;
++	int64_t t;
++	uint64_t u, name_len;
  
  	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_AFIO_LARGE;
  	a->archive.archive_format_name = "afio large ASCII";
-@@ -880,6 +1073,11 @@ header_afiol(struct archive_read *a, str
+@@ -868,8 +1021,7 @@ header_afiol(struct archive_read *a, str
+ 	archive_entry_set_rdev(entry,
+ 		(dev_t)atol16(header + afiol_rdev_offset, afiol_rdev_size));
+ 	archive_entry_set_mtime(entry, atol16(header + afiol_mtime_offset, afiol_mtime_size), 0);
+-	*namelength = (size_t)atol16(header + afiol_namesize_offset, afiol_namesize_size);
+-	*name_pad = 0; /* No padding of filename. */
++	name_len = (size_t)atol16(header + afiol_namesize_offset, afiol_namesize_size);
+ 
+ 	t = atol16(header + afiol_filesize_offset, afiol_filesize_size);
+ 	if (t < 0) {
+@@ -880,16 +1032,18 @@ header_afiol(struct archive_read *a, str
  	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
  	cpio->entry_padding = 0;
  	__archive_read_consume(a, afiol_header_size);
+-	return (ARCHIVE_OK);
 +
-+	r = set_entry_pathname(a, entry, *namelength, *name_pad);
-+	if (r < ARCHIVE_WARN)
-+		return (r);
-+
- 	return (ARCHIVE_OK);
++	return set_entry_pathname(a, entry, name_len, 0);
  }
  
-@@ -890,6 +1088,7 @@ header_bin_le(struct archive_read *a, st
+ 
+ static int
+ header_bin_le(struct archive_read *a, struct cpio *cpio,
+-    struct archive_entry *entry, size_t *namelength, size_t *name_pad)
++    struct archive_entry *entry)
  {
  	const void *h;
  	const unsigned char *header;
-+	int r;
++	uint64_t name_len;
  
  	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_BIN_LE;
  	a->archive.archive_format_name = "cpio (little-endian binary)";
-@@ -926,6 +1125,11 @@ header_bin_le(struct archive_read *a, st
+@@ -919,22 +1073,23 @@ header_bin_le(struct archive_read *a, st
+ 	archive_entry_set_nlink(entry, header[bin_nlink_offset] + header[bin_nlink_offset + 1] * 256);
+ 	archive_entry_set_rdev(entry, header[bin_rdev_offset] + header[bin_rdev_offset + 1] * 256);
+ 	archive_entry_set_mtime(entry, le4(header + bin_mtime_offset), 0);
+-	*namelength = header[bin_namesize_offset] + header[bin_namesize_offset + 1] * 256;
+-	*name_pad = *namelength & 1; /* Pad to even. */
++	name_len = header[bin_namesize_offset] + header[bin_namesize_offset + 1] * 256;
+ 
+ 	cpio->entry_bytes_remaining = le4(header + bin_filesize_offset);
  	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
  	cpio->entry_padding = cpio->entry_bytes_remaining & 1; /* Pad to even. */
  	__archive_read_consume(a, bin_header_size);
+-	return (ARCHIVE_OK);
 +
-+	r = set_entry_pathname(a, entry, *namelength, *name_pad);
-+	if (r < ARCHIVE_WARN)
-+		return (r);
-+
- 	return (ARCHIVE_OK);
++	return set_entry_pathname(a, entry, name_len, name_len & 1);
  }
  
-@@ -935,6 +1139,7 @@ header_bin_be(struct archive_read *a, st
+ static int
+ header_bin_be(struct archive_read *a, struct cpio *cpio,
+-    struct archive_entry *entry, size_t *namelength, size_t *name_pad)
++    struct archive_entry *entry)
  {
  	const void *h;
  	const unsigned char *header;
-+	int r;
++	uint64_t name_len;
  
  	a->archive.archive_format = ARCHIVE_FORMAT_CPIO_BIN_BE;
  	a->archive.archive_format_name = "cpio (big-endian binary)";
-@@ -971,6 +1176,11 @@ header_bin_be(struct archive_read *a, st
+@@ -964,14 +1119,14 @@ header_bin_be(struct archive_read *a, st
+ 	archive_entry_set_nlink(entry, header[bin_nlink_offset] * 256 + header[bin_nlink_offset + 1]);
+ 	archive_entry_set_rdev(entry, header[bin_rdev_offset] * 256 + header[bin_rdev_offset + 1]);
+ 	archive_entry_set_mtime(entry, be4(header + bin_mtime_offset), 0);
+-	*namelength = header[bin_namesize_offset] * 256 + header[bin_namesize_offset + 1];
+-	*name_pad = *namelength & 1; /* Pad to even. */
++	name_len = header[bin_namesize_offset] * 256 + header[bin_namesize_offset + 1];
+ 
+ 	cpio->entry_bytes_remaining = be4(header + bin_filesize_offset);
  	archive_entry_set_size(entry, cpio->entry_bytes_remaining);
  	cpio->entry_padding = cpio->entry_bytes_remaining & 1; /* Pad to even. */
  	    __archive_read_consume(a, bin_header_size);
+-	return (ARCHIVE_OK);
 +
-+	r = set_entry_pathname(a, entry, *namelength, *name_pad);
-+	if (r < ARCHIVE_WARN)
-+		return (r);
-+
- 	return (ARCHIVE_OK);
++	return set_entry_pathname(a, entry, name_len, name_len & 1);
  }
  
-@@ -1119,3 +1329,44 @@ record_hardlink(struct archive_read *a,
+ static int
+@@ -1119,3 +1274,48 @@ record_hardlink(struct archive_read *a,
  
  	return (ARCHIVE_OK);
  }
 +
 +static int
 +set_entry_pathname(struct archive_read *a, struct archive_entry *entry,
-+    size_t namelength, size_t name_pad)
++    uint64_t namelength, uint64_t name_pad)
 +{
 +	struct cpio *cpio = a->format->data;
 +	struct archive_string_conv *sconv;
@@ -1100,23 +1365,27 @@ diff -up libarchive-3.8.4/libarchive/archive_read_support_format_cpio.c.2~ libar
 +	}
 +
 +	/* Read name from buffer. */
-+	if (namelength > 0) {
-+		const void *h = __archive_read_ahead(a, namelength + name_pad, NULL);
-+		if (h == NULL)
++	const void *h = __archive_read_ahead(a, namelength + name_pad, NULL);
++	if (h == NULL)
++		return (ARCHIVE_FATAL);
++	if (archive_entry_copy_pathname_l(entry, (const char *)h, namelength, sconv)
++		!= 0) {
++		if (errno == ENOMEM) {
++			archive_set_error(&a->archive, ENOMEM,
++				"Can't allocate memory for Pathname");
 +			return (ARCHIVE_FATAL);
-+		if (archive_entry_copy_pathname_l(entry, (const char *)h, namelength, sconv)
-+			!= 0) {
-+			if (errno == ENOMEM) {
-+				archive_set_error(&a->archive, ENOMEM,
-+					"Can't allocate memory for Pathname");
-+				return (ARCHIVE_FATAL);
-+			}
-+			archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
-+				"Pathname can't be converted from %s to current locale.",
-+				archive_string_conversion_charset_name(sconv));
-+			r = ARCHIVE_WARN;
 +		}
++		archive_set_error(&a->archive, ARCHIVE_ERRNO_FILE_FORMAT,
++			"Pathname can't be converted from %s to current locale.",
++			archive_string_conversion_charset_name(sconv));
++		r = ARCHIVE_WARN;
 +	}
++
++	__archive_read_consume(a, namelength + name_pad);
++
++	if (r == ARCHIVE_OK &&
++		strncmp(archive_entry_pathname(entry), "TRAILER!!!", 11) == 0)
++		r = ARCHIVE_EOF;
 +
 +	return (r);
 +}
