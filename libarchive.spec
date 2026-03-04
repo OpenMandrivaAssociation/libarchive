@@ -22,8 +22,8 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.8.4
-Release:	3
+Version:	3.8.5
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		https://www.libarchive.org/
