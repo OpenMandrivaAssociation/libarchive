@@ -55,8 +55,9 @@ BuildRequires:	devel(libz)
 
 %patchlist
 libarchive.pc-no-Lusrlib.patch
-https://github.com/libarchive/libarchive/pull/2846.patch
-libarchive-2846-compile.patch
+rpm_format_001.patch
+rpm_format_002.patch
+rpm_format_003.patch
 
 %description
 Libarchive is a programming library that can create and read several
