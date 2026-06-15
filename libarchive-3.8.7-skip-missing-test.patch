@@ -1,0 +1,12 @@
+diff -up libarchive-3.8.7/CMakeLists.txt.omv~ libarchive-3.8.7/CMakeLists.txt
+diff -up libarchive-3.8.7/libarchive/test/CMakeLists.txt.omv~ libarchive-3.8.7/libarchive/test/CMakeLists.txt
+--- libarchive-3.8.7/libarchive/test/CMakeLists.txt.omv~	2026-06-15 02:44:34.119590713 +0200
++++ libarchive-3.8.7/libarchive/test/CMakeLists.txt	2026-06-15 02:44:37.919089351 +0200
+@@ -115,7 +115,6 @@ IF(ENABLE_TEST)
+     test_read_format_cab.c
+     test_read_format_cab_filename.c
+     test_read_format_cab_lzx_oob.c
+-    test_read_format_cab_skip_malformed.c
+     test_read_format_cpio_afio.c
+     test_read_format_cpio_bin.c
+     test_read_format_cpio_bin_Z.c
