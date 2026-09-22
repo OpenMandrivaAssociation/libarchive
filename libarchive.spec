@@ -23,7 +23,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.8.9
-Release:	1
+Release:	2
 License:	BSD
 Group:		System/Libraries
 Url:		https://www.libarchive.org/
@@ -54,6 +54,7 @@ BuildRequires:	devel(libz)
 %endif
 
 %patchlist
+libarchive-3.8.9-pc-libdir.patch
 # dropped (no longer applies): libarchive.pc-no-Lusrlib.patch
 # dropped (no longer applies): rpm_format_001.patch
 # dropped (no longer applies): rpm_format_002.patch

@@ -1,0 +1,25 @@
+diff -up a/build/cmake/CreatePkgConfigFile.cmake b/build/cmake/CreatePkgConfigFile.cmake
+--- a/build/cmake/CreatePkgConfigFile.cmake
++++ b/build/cmake/CreatePkgConfigFile.cmake
+@@ -4,7 +4,8 @@
+ # Set the required variables (we use the same input file as autotools)
+ SET(prefix ${CMAKE_INSTALL_PREFIX})
+ SET(exec_prefix \${prefix})
+-SET(libdir \${exec_prefix}/lib)
++# Native builds use lib64; the 32-bit build passes lib.
++SET(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+ SET(includedir \${prefix}/include)
+ # Now, this is not particularly pretty, nor is it terribly accurate...
+ # Loop over all our additional libs
+diff -up a/build/pkgconfig/libarchive.pc.in b/build/pkgconfig/libarchive.pc.in
+--- a/build/pkgconfig/libarchive.pc.in
++++ b/build/pkgconfig/libarchive.pc.in
+@@ -8,6 +8,7 @@ Description: library that can create and
+ Version: @VERSION@
+ Cflags: -I${includedir}
+ Cflags.private: -DLIBARCHIVE_STATIC
+-Libs: -L${libdir} -larchive
++# libdir is the default search path for the compiler that uses this file.
++Libs: -larchive
+ Libs.private: @LIBS@
+ Requires.private: @LIBSREQUIRED@
