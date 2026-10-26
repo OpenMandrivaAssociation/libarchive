@@ -23,7 +23,7 @@
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
 Version:	3.8.9
-Release:	2
+Release:	3
 License:	BSD
 Group:		System/Libraries
 Url:		https://www.libarchive.org/
@@ -46,6 +46,8 @@ BuildRequires:	pkgconfig(zlib)
 BuildRequires:	pkgconfig(liblz4)
 BuildRequires:	pkgconfig(libb2)
 %if %{with compat32}
+# -m32 links libclang_rt.builtins.a from the i686 cross clang.
+BuildRequires:	cross-i686-openmandriva-linux-gnu-clang
 BuildRequires:	devel(libbz2)
 BuildRequires:	devel(libzstd)
 BuildRequires:	devel(libssl)
@@ -242,7 +244,7 @@ cd ..
     -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="%{optflags} -fprofile-use=$PROFDATA" \
     -DCMAKE_EXE_LINKER_FLAGS="%{build_ldflags} -fprofile-use=$PROFDATA" \
     -DCMAKE_SHARED_LINKER_FLAGS="%{build_ldflags} -fprofile-use=$PROFDATA" \
-    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{build_ldflags} -fprofile-use=$PROFDATA" \|sed -e 's#-Wl,--no-undefined##')" \
+    -DCMAKE_MODULE_LINKER_FLAGS="%(echo %{build_ldflags}|sed -e 's#-Wl,--no-undefined##') -fprofile-use=$PROFDATA" \
 %endif
     -DENABLE_LIBXML2=FALSE \
     -DENABLE_EXPAT=FALSE \
