@@ -22,8 +22,8 @@
 
 Summary:	Library for reading and writing streaming archives
 Name:		libarchive
-Version:	3.8.9
-Release:	3
+Version:	3.8.11
+Release:	1
 License:	BSD
 Group:		System/Libraries
 Url:		https://www.libarchive.org/
@@ -57,6 +57,12 @@ BuildRequires:	devel(libz)
 
 %patchlist
 libarchive-3.8.9-pc-libdir.patch
+# RPM format reader (https://github.com/libarchive/libarchive/pull/2846).
+# 3.8.11 defers archive_read_append_filter() bidder init until open
+# (#3694); the reader appends the payload filter after open, so the
+# patch bids and initializes that filter itself.
+# https://github.com/libarchive/libarchive/pull/2846#issuecomment-6742427890
+libarchive-3.8.11-rpm-format.patch
 # dropped (no longer applies): libarchive.pc-no-Lusrlib.patch
 # dropped (no longer applies): rpm_format_001.patch
 # dropped (no longer applies): rpm_format_002.patch
